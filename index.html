@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<canvas id="coordinateGrid" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
+<br>
+<input type="button" style="height:50px;width:100px" value="run"  id="btn1">
+<input type="text" style="height:44px;width:100px" value="20"  id="vertices1">
+<input type="text" style="height:44px;width:100px" value="5"  id="edges1">
+
+<!--<script type="module">-->
+<!--    import {circle, line} from "./main.js";-->
+
+<!--    let x1 = 100, y1 = 20, x2 = 200, y2 = 200-->
+<!--    circle(x1, y1);-->
+<!--    circle(x2, y2);-->
+<!--    line(x1, y1, x2, y2);-->
+
+
+<!--</script>-->
+
+<script type="module">
+    import {main} from "./main.js";
+    document.getElementById("btn1").addEventListener('click', () => {
+        main();
+    })
+
+
+</script>
+
+
+</body>
+</html>
