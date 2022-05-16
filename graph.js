@@ -10,7 +10,9 @@ export class Graph {
         verticesList = [], // [[x1, y1,], [x2, y2], ... [x3, y3]]
         verticesNames = [], // [ 'name1', 'name2', ...  'name3']
         edgesList = [], // [['name1', 'name2',], ['name2', 'name3'], ... ['name3', 'name2']]
-        edgesNames = [] // [ 'name1', 'name2', ...  'name3']
+        edgesNames = [], // [ 'name1', 'name2', ...  'name3']
+        verticeObjectsList = [],
+        edgeObjectsList = []
     ) {
 
         this.numOfVertices = numOfVertices;
@@ -23,21 +25,39 @@ export class Graph {
         this.nameForNextEdge = 0;
         this.verticesMap = new Map();
         this.edgesMap = new Map();
+        this.verticeObjectsList = verticeObjectsList;
+        this.edgeObjectsList = edgeObjectsList;
 
-        this.nameForNextVertice = this.checkVerticesListAndCreateVertices(
-            this.verticesList,
-            this.verticesMap,
-            this.verticesNames,
-            this.nameForNextVertice);
-        this.nameForNextEdge = this.checkEdgesListAndCreateEdges(
-            this.edgesList,
-            this.edgesMap,
-            this.edgesNames,
-            this.nameForNextEdge,
-            this.verticesMap,
-            this.adjacentMap);
+        // this.nameForNextVertice = this.checkVerticesListAndCreateVertices(
+        //     this.verticesList,
+        //     this.verticesMap,
+        //     this.verticesNames,
+        //     this.nameForNextVertice);
+        // this.nameForNextEdge = this.checkEdgesListAndCreateEdges(
+        //     this.edgesList,
+        //     this.edgesMap,
+        //     this.edgesNames,
+        //     this.nameForNextEdge,
+        //     this.verticesMap,
+        //     this.adjacentMap);
 
-        // TODO: add random points generation
+        this.createVerticesFromObjects(this.verticeObjectsList, this.nameForNextVertice, this.verticesMap);
+    }
+
+    createVerticesFromObjects(verticeObjectsList, randName, verticesMap) {
+        let grph = this;
+        verticeObjectsList.forEach(function(item) {
+            while(!item.name && verticesMap.has(item.name)) {
+                item.name = item.name || item.name === 0 ? item.name : name++;
+            }
+            let vertice = grph.createVertice(item);
+            verticesMap.set(item.name, vertice);
+        })
+        return verticesMap;
+    }
+
+    createEdgesFromObjects(edgeObjectsList) {
+
     }
 
     checkVerticesListAndCreateVertices(verticesList, verticesMap, verticesNames, name) {
@@ -46,7 +66,7 @@ export class Graph {
         verticesList.forEach(function(item, index) {
             // TODO: check for error prone
             let tmpName = verticesNames[index] || verticesNames[index] === 0 ? verticesNames[index] : name++;
-            let vrtce = grph.createVertice(item[0], item[1], tmpName);
+            let vrtce = grph.createVertice({x: item[0], y: item[1], name: tmpName});
             verticesMap.set(tmpName, vrtce);
         })
         return name;
@@ -64,7 +84,7 @@ export class Graph {
         return name;
     }
 
-    createVertice(
+    createVertice({
         x,
         y,
         name,
@@ -75,7 +95,7 @@ export class Graph {
         numOfWares = 0,
         defencePower = 0,
         reach = 0,
-        isForVisualisation = true) {
+        isForVisualisation = true }) {
 
         return new Vertices(
             x,
@@ -91,8 +111,8 @@ export class Graph {
             isForVisualisation);
     }
 
-    createEdge(vertices, name, length, protectionAmount = 0, level = 0, type = 0, isForVisualisation = true) {
-        return new Edge(vertices, name, length, protectionAmount, level, type, isForVisualisation);
+    createEdge({vertices, name, length, protectionAmount = 0, level = 0, type = 0, isForVisualisation = true }) {
+        return new Edge({vertices, name, length, protectionAmount, level, type, isForVisualisation});
     }
 
     fillMapWithAdjacentVertices(map, verticeName, addedAdjacentList) {
@@ -118,7 +138,7 @@ export class Graph {
         // TODO: check distance
         let lngth = this.countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap);
         if(lngth === -1) return adjacentList;
-        edgesMap.set(nameForNextEdge, this.createEdge([vertice1Name, vertice2Name], nameForNextEdge, lngth, protectionAmount, level, type, isForVisualisation));
+        edgesMap.set(`from ${vertice1Name} to ${vertice2Name}`, this.createEdge({vertices:[vertice1Name, vertice2Name], name: nameForNextEdge, length:lngth, protectionAmount, level, type, isForVisualisation}));
 
         return this.fillMapWithAdjacentVertices(adjacentList, vertice1Name, [vertice2Name]);
     }
@@ -146,7 +166,7 @@ export class Graph {
         let vertices = [];
         for(let name of verticesMap.keys()) {
             let item = this.getVerticeOrEdgeByName(name, verticesMap);
-            vertices.push({name: item.name, x: item.x, y: item.y});
+            vertices.push(item/*{name: item.name, x: item.x, y: item.y}*/);
         }
         return vertices;
     }
@@ -155,7 +175,7 @@ export class Graph {
         let edges = [];
         for(let name of edgesMap.keys()) {
             let item = this.getVerticeOrEdgeByName(name, edgesMap);
-            edges.push({name: item.name, vertice1: item.vertices[0], vertice2: item.vertices[1]});
+            edges.push(item);
         }
         return edges;
     }
@@ -247,7 +267,7 @@ export class Vertices {
 
 export class Edge {
 
-    constructor(vertices, name, length, protectionAmount, level, type = 0, isForVisualisation = true) {
+    constructor({vertices, name, length, protectionAmount, level, type = 0, isForVisualisation = true}) {
         this.vertices = vertices; // ['name1', 'name2']
         this.name = name;
 

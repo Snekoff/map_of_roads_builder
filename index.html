@@ -9,8 +9,9 @@
 <canvas id="coordinateGrid" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
 <br>
 <input type="button" style="height:50px;width:100px" value="run"  id="btn1">
-<input type="text" style="height:44px;width:100px" value="20"  id="vertices1">
-<input type="text" style="height:44px;width:100px" value="5"  id="edges1">
+<input type="text" style="height:44px;width:100px" value="0"  id="vertices1">
+<input type="text" style="height:44px;width:100px" value="0"  id="edges1">
+<input type="button" style="height:50px;width:100px" value="next step"  id="btn2">
 
 <!--<script type="module">-->
 <!--    import {circle, line} from "./main.js";-->
@@ -24,9 +25,14 @@
 <!--</script>-->
 
 <script type="module">
-    import {main} from "./main.js";
+    import * as fnc from "./main.js";
+    let graph;
     document.getElementById("btn1").addEventListener('click', () => {
-        main();
+        graph = fnc.initialVerticesEdgesShow();
+    })
+
+    document.getElementById("btn2").addEventListener('click', () => {
+        graph = fnc.buildEdgesAndUpdateView(graph);
     })
 
 
