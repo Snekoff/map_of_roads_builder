@@ -115,19 +115,19 @@ export class Graph {
         return new Edge({vertices, name, length, protectionAmount, level, type, isForVisualisation});
     }
 
-    fillMapWithAdjacentVertices(map, verticeName, addedAdjacentList) {
-        if(map.has(verticeName)) {
-            let tempListAdj = map.get(verticeName).forEach(function (item) { addedAdjacentList.push(item); })
-            map.set(verticeName, tempListAdj);
+    fillMapWithAdjacentVertices(adjacentMap, verticeName, addedAdjacentList) {
+        if(adjacentMap.has(verticeName)) {
+            let tempListAdj = adjacentMap.get(verticeName).forEach(function (item) { addedAdjacentList.push(item); })
+            adjacentMap.set(verticeName, tempListAdj);
         }
-        map.set(verticeName, addedAdjacentList);
-        return map;
+        adjacentMap.set(verticeName, addedAdjacentList);
+        return adjacentMap;
     }
 
     createEdgeFromTwoPointsAndAddPointsToAdjacentLists(
         vertice1Name,
         vertice2Name,
-        adjacentList,
+        adjacentMap,
         edgesMap,
         nameForNextEdge,
         verticesMap,
@@ -137,10 +137,10 @@ export class Graph {
         isForVisualisation = true) {
         // TODO: check distance
         let lngth = this.countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap);
-        if(lngth === -1) return adjacentList;
+        if(lngth === -1) return adjacentMap;
         edgesMap.set(`from ${vertice1Name} to ${vertice2Name}`, this.createEdge({vertices:[vertice1Name, vertice2Name], name: nameForNextEdge, length:lngth, protectionAmount, level, type, isForVisualisation}));
 
-        return this.fillMapWithAdjacentVertices(adjacentList, vertice1Name, [vertice2Name]);
+        return this.fillMapWithAdjacentVertices(adjacentMap, vertice1Name, [vertice2Name]);
     }
 
     countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap) {
@@ -225,6 +225,7 @@ export class Vertices {
         //this.resourcesNeeded = resourcesNeeded;
         this.defencePower = defencePower;
         this.reach = reach;
+        this.reachChange = 0;
         //this.isCapital = richness;
     }
 
@@ -261,6 +262,17 @@ export class Vertices {
             return `Field ${name} is not present in obj`;
         }
         return this[name];
+    }
+
+    setReachChange(value) {
+        if(!value && typeof value !== "number") return NaN;
+        this.reachChange += value;
+    }
+
+    applyReachChange() {
+        this.reach += this.reachChange;
+        if(this.reach < 0) this.reach = 0;
+        this.reachChange = 0;
     }
 
 }
