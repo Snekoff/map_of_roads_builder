@@ -31,6 +31,44 @@ export function line(x1 = 0, y1 = 0, x2 = 100, y2 = 100, isForVisualisation) {
 
 }
 
+export function drawBackgroundImage(x, y, src) {
+    let canvas = document.getElementById("coordinateGrid");
+    let ctx = canvas.getContext("2d");
+
+    let background = new Image();
+    background.src = src; // ./345d9724898967.5633bed73d62e.jpeg
+    let width = 4000;
+    let height = 2000;
+
+    // Make sure the image is loaded first otherwise nothing will draw.
+    background.onload = function(){
+        ctx.drawImage(background, 500, 250, width / 3, height / 2, 0, 0, width, height);
+    }
+}
+
+function drawVerticeImage(x, y, type) {
+    let imgSrc = ["city1.png", "village1.png", "fort1.png"];
+    let sizes = [[90, 90], [70, 50], [80, 50]];
+    if(type >= imgSrc.length) return -1;
+
+    let canvas = document.getElementById("coordinateGrid");
+    let ctx = canvas.getContext("2d");
+
+    let icon = new Image();
+    icon.src = imgSrc[type]; // ./345d9724898967.5633bed73d62e.jpeg
+
+    // Make sure the image is loaded first otherwise nothing will draw.
+    icon.onload = function(){
+        ctx.drawImage(icon, x - sizes[type][0] / 2, y - sizes[type][0] / 2 - 20, sizes[type][0], sizes[type][1]);
+    }
+    return 0;
+}
+
+function drawImageOrColoredCircleIfCant(x, y, type) {
+    if(drawVerticeImage(x, y, type) > -1) return;
+    circle(x, y, type);
+}
+
 function randomPointsGeneration(numOfVerticesToGenerate, verticesList, verticesNames, edgesList) {
     for (let i = 0; i < numOfVerticesToGenerate; i++) {
         verticesList.push([Math.random() * 2000, Math.random() * 1000]);
@@ -48,6 +86,45 @@ function randomPointsGeneration(numOfVerticesToGenerate, verticesList, verticesN
 }
 
 let verticeObjectsList = [
+    // {
+    //     x: 100,
+    //     y: 450,
+    //     name: 'fort 1',
+    //     type: 2,
+    //     richness: 5,
+    //     prosperity: 10,
+    //     incomeToAddInNextTurn: 1,
+    //     numOfWares: 0,
+    //     defencePower: 0,
+    //     reach: 1000,
+    //     isForVisualisation: true
+    // },
+    // {
+    //     x: 200,
+    //     y: 400,
+    //     name: 'village 1',
+    //     type: 1,
+    //     richness: 10,
+    //     prosperity: 10,
+    //     incomeToAddInNextTurn: 2,
+    //     numOfWares: 0,
+    //     defencePower: 0,
+    //     reach: 500,
+    //     isForVisualisation: true
+    // }
+    // ,{
+    //     x: 900,
+    //     y: 290,
+    //     name: 'fort 2',
+    //     type: 2,
+    //     richness: 15,
+    //     prosperity: 10,
+    //     incomeToAddInNextTurn: 3,
+    //     numOfWares: 0,
+    //     defencePower: 0,
+    //     reach: 1500,
+    //     isForVisualisation: true
+    // }
     {
         x: 100,
         y: 850,
@@ -401,21 +478,37 @@ function drawVerticesEdgesAndTextOnCanvas(graph) {
     console.log(edges);
 
     refresh();
-    let mul = 1;
-    for (let edg of edges) {
-        let verticeMap = graph.verticesMap;
-        let name1 = edg.vertices[0], name2 = edg.vertices[1];
-        let item1 = verticeMap.get(name1);
-        let item2 = verticeMap.get(name2);
-        line(item1.x * mul, item1.y * mul, item2.x * mul, item2.y * mul, edg.isForVisualisation);
-    }
-    for (let vert of vertices) {
-        circle(vert.x * mul, vert.y * mul, vert.type);
-        drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name));
-    }
+    drawBackgroundImage(0, 0, "345d9724898967.5633bed73d62e.jpg");
+    setTimeout(() => {
+        let mul = 1;
+        for (let edg of edges) {
+            let verticeMap = graph.verticesMap;
+            let name1 = edg.vertices[0], name2 = edg.vertices[1];
+            let item1 = verticeMap.get(name1);
+            let item2 = verticeMap.get(name2);
+            line(item1.x * mul, item1.y * mul, item2.x * mul, item2.y * mul, edg.isForVisualisation);
+        }
+        for (let vert of vertices) {
+            drawImageOrColoredCircleIfCant(vert.x * mul, vert.y * mul, vert.type);
+            setTimeout(() => drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name)), 10);
+        }
+    }, 10)
+    // let mul = 1;
+    // for (let edg of edges) {
+    //     let verticeMap = graph.verticesMap;
+    //     let name1 = edg.vertices[0], name2 = edg.vertices[1];
+    //     let item1 = verticeMap.get(name1);
+    //     let item2 = verticeMap.get(name2);
+    //     line(item1.x * mul, item1.y * mul, item2.x * mul, item2.y * mul, edg.isForVisualisation);
+    // }
+    // for (let vert of vertices) {
+    //     circle(vert.x * mul, vert.y * mul, vert.type);
+    //     drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name));
+    // }
 }
 
 export function initialVerticesEdgesShow() {
+
     console.log(document.getElementById("btn1").value);
     let numOfVerticesToGenerate = +document.getElementById("vertices1").value;
     let verticesList = [];
@@ -482,6 +575,7 @@ function countDistancesBetweenVerticesAndReturnReachableForEach(graph) {
     let vertices = graph.getAllVertices(graph.verticesMap);
     for(let i = 0; i < vertices.length; i++) {
         for(let j = i + 1; j < vertices.length; j++) {
+            if(graph.edgesMap.has(`from ${vertices[i]} to ${vertices[j]}`)) continue;
             let distance = graph.countDistanceBetweenVertices(vertices[i].name, vertices[j].name, graph.verticesMap);
             if(distance < vertices[i].reach || distance < vertices[j].reach) {
                 arrOfPairs.push([vertices[i].name, vertices[j].name]);
@@ -516,23 +610,93 @@ function lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph) {
 function lookForUnnecessaryEdgesAndReasemble(graph) {
     // console.log("graph.adjacentMap.entries()");
     // console.log(graph.adjacentMap.entries());
-    let outerLoopBreaker = false;
-    for(let vert of graph.adjacentMap.entries()) {
-        if(vert[1].length > 1) {
-            for(let i = 0; i < vert[1].length; i++) {
-                for(let j = i + 1; j < vert[1].length; j++) {
-                    let arr = countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, vert[0], vert[1][i], vert[1][j]);
-                    let doEdgeExistsArr = checkDoEdgeExistsArr(graph, vert[0], vert[1][i], vert[1][j])
-                    let indxAndSum = findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
-                    if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
-                    let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReasembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [vert[0], vert[1][i], vert[1][j]], indxAndSum[0]);
-                    // if(tmpDebugResult === 0) {
-                    //     lookForUnnecessaryEdgesAndReasemble(graph);
-                    //     return;
-                    // }
-                }
+    // TODO: rework
+    let finishedVerticesArr = [];
+    let tmpKey = graph.adjacentMap.keys()[Symbol.iterator]().next().value;
+    let depthIndex = [0];
+    reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, tmpKey, depthIndex);
+
+
+
+
+    // let outerLoopBreaker = false;
+    // for(let vert of graph.adjacentMap.entries()) {
+    //     if(vert[1].length > 1) {
+    //         for(let i = 0; i < vert[1].length; i++) {
+    //             for(let j = i + 1; j < vert[1].length; j++) {
+    //                 let arr = countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, vert[0], vert[1][i], vert[1][j]);
+    //                 let doEdgeExistsArr = checkDoEdgeExistsArr(graph, vert[0], vert[1][i], vert[1][j])
+    //                 let indxAndSum = findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
+    //                 if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
+    //                 let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [vert[0], vert[1][i], vert[1][j]], indxAndSum[0]);
+    //                 // if(tmpDebugResult === 0) {
+    //                 //     lookForUnnecessaryEdgesAndReasemble(graph);
+    //                 //     return;
+    //                 // }
+    //             }
+    //         }
+    //     }
+    // }
+}
+
+function reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap, depthIndex) {
+    if(depthIndex[0] > 100) {
+        console.log("-----------------------depthIndex > 100----------------");
+        console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
+        console.log(keyForMap);
+        console.log("reassembleEdgesInTriangleIfNeeded graph");
+        console.log(graph);
+        console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
+        console.log(finishedVerticesArr);
+
+        return;
+    }
+    let outerBreak = false;
+    if(!graph.adjacentMap.has(keyForMap)) {
+        if(graph.verticesMap.has(keyForMap)) finishedVerticesArr.push(keyForMap);
+        return;
+    }
+    if(finishedVerticesArr.indexOf(keyForMap) > -1) outerBreak = true;
+    let adjArr = graph.adjacentMap.get(keyForMap);
+    if(adjArr.length < 2) {
+        finishedVerticesArr.push(keyForMap);
+        outerBreak = true;
+    }
+
+    for(let i = 0; i < adjArr.length && !outerBreak; i++) {
+        for (let j = i + 1; j < adjArr.length; j++) {
+            let arr = countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, keyForMap, adjArr[i], adjArr[j]);
+            let doEdgeExistsArr = checkDoEdgeExistsArr(graph, keyForMap, adjArr[i], adjArr[j])
+            let indxAndSum = findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
+            console.log("reassembleEdgesInTriangleIfNeeded indxAndSum");
+            console.log(indxAndSum);
+            if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
+            let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [keyForMap, adjArr[i], adjArr[j]], indxAndSum[0]);
+            if(tmpDebugResult === 0) {
+                console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
+                console.log(keyForMap);
+                console.log("reassembleEdgesInTriangleIfNeeded graph.adjacentMap");
+                console.log(graph.adjacentMap);
+                console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
+                console.log(finishedVerticesArr);
+                depthIndex[0] += 1;
+                reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap, depthIndex);
+                outerBreak = true;
+                break;
             }
         }
+        if(i === adjArr.length - 1) finishedVerticesArr.push(keyForMap);
+    }
+    let newKey;
+    let tmpArr = Array.from(graph.adjacentMap.keys());
+    for(let key = 0; key < tmpArr.length && newKey === undefined; key++) {
+        if(finishedVerticesArr.indexOf(tmpArr[key]) < 0) {
+            newKey = tmpArr[key];
+        }
+    }
+    if(newKey) {
+        depthIndex[0] += 1;
+        return reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, newKey, depthIndex);
     }
 }
 
@@ -562,23 +726,24 @@ function findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr) {
     return [indexOfMax, sumOfCathetuses];
 }
 
-function checkIfDifferenceBeyondLimitAndDoReasembleVerticesIfNeeded(graph, hypotenuse, sumOfCathetuses, arrOfNamesOfVertices, indxOfHypotenuse, limitInPercents = 60) {
+function checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, hypotenuse, sumOfCathetuses, arrOfNamesOfVertices, indxOfHypotenuse, limitInPercents = 10) {
     if(limitInPercents < 0) limitInPercents = 0;
     if(limitInPercents > 100) limitInPercents = 100;
     if(hypotenuse < sumOfCathetuses * (100 - limitInPercents)/100) return -1;
     let tmpDebugResult = addIfOneCathetusIsAbsent(graph, arrOfNamesOfVertices);
     let edgesNamesArr = [`from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[1]}`, `from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[2]}`, `from ${arrOfNamesOfVertices[1]} to ${arrOfNamesOfVertices[2]}`];
-    // console.log("indxOfHypotenuse");
-    // console.log(indxOfHypotenuse);
-    // console.log("graph.edgesMap");
-    // console.log(graph.edgesMap);
-    // console.log("edgesNamesArr[indxOfHypotenuse]");
-    // console.log(edgesNamesArr[indxOfHypotenuse]);
-    // console.log("arrOfNamesOfVertices");
-    // console.log(arrOfNamesOfVertices);
-    // console.log("");
-    // console.log();
-    tmpDebugResult = deleteUnnecessaryHypotenuse(graph, graph.edgesMap.get(edgesNamesArr[indxOfHypotenuse]).vertices);
+    console.log("----------checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
+    console.log("indxOfHypotenuse");
+    console.log(indxOfHypotenuse);
+    console.log("graph.edgesMap");
+    console.log(graph.edgesMap);
+    console.log("edgesNamesArr[indxOfHypotenuse]");
+    console.log(edgesNamesArr[indxOfHypotenuse]);
+    console.log("arrOfNamesOfVertices");
+    console.log(arrOfNamesOfVertices);
+    console.log("-------END checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
+    // I had to write this useless check to convince IDE that I need that value and not to mark it as redundant
+    if(tmpDebugResult >= -1) tmpDebugResult = deleteUnnecessaryHypotenuse(graph, graph.edgesMap.get(edgesNamesArr[indxOfHypotenuse]).vertices);
     return tmpDebugResult;
 }
 
@@ -601,6 +766,8 @@ function addIfOneCathetusIsAbsent(graph, arrOfNamesOfVertices) {
     return -1;
 }
 
+
+
 function deleteUnnecessaryHypotenuse(graph, vertices) {
     // find edges in Map
     // make it really long and hide from visualization
@@ -609,6 +776,7 @@ function deleteUnnecessaryHypotenuse(graph, vertices) {
     // find in AdjacentMap arr
     // delete from arr
     // replace arr
+    let result = 0;
     if(!graph.edgesMap.has(`from ${vertices[0]} to ${vertices[1]}`) && !graph.edgesMap.has(`from ${vertices[1]} to ${vertices[0]}`)) return -1;
     if(graph.edgesMap.has(`from ${vertices[0]} to ${vertices[1]}`)) {
         let edge = graph.edgesMap.get(`from ${vertices[0]} to ${vertices[1]}`);
@@ -616,10 +784,7 @@ function deleteUnnecessaryHypotenuse(graph, vertices) {
         edge.length *= 5;
         graph.edgesMap.set(`from ${vertices[0]} to ${vertices[1]}`, edge);
 
-        let adjacentArr = graph.adjacentMap.get(vertices[0]);
-        let indx = adjacentArr.indexOf(vertices[1]);
-        adjacentArr.splice(indx, 1);
-        graph.adjacentMap.set(vertices[0], adjacentArr);
+        result += deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertices[0], vertices[1]);
     }
     if(graph.edgesMap.has(`from ${vertices[1]} to ${vertices[0]}`)) {
         let edge = graph.edgesMap.get(`from ${vertices[1]} to ${vertices[0]}`);
@@ -627,12 +792,27 @@ function deleteUnnecessaryHypotenuse(graph, vertices) {
         edge.length *= 5;
         graph.edgesMap.set(`from ${vertices[1]} to ${vertices[0]}`, edge);
 
-        let adjacentArr = graph.adjacentMap.get(vertices[1]);
-        let indx = adjacentArr.indexOf(vertices[0]);
-        adjacentArr.splice(indx, 1);
-        graph.adjacentMap.set(vertices[1], adjacentArr);
+        result += deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertices[1], vertices[0]);
     }
-    return  0;
+    return  result;
+}
+
+function deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertice1, verticeToDelete) {
+    if(graph.adjacentMap.get(vertice1)) return -1;
+    let adjacentArr = graph.adjacentMap.get(vertice1);
+    console.log("-------------deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
+    console.log("vertice1");
+    console.log(vertice1);
+    console.log("verticeToDelete");
+    console.log(verticeToDelete);
+    console.log("graph.adjacentMap.get(vertice1)");
+    console.log(graph.adjacentMap.get(vertice1));
+    console.log("---------END deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
+
+    let indx = adjacentArr.indexOf(verticeToDelete);
+    if(indx > -1) adjacentArr.splice(indx, 1);
+    graph.adjacentMap.set(vertice1, adjacentArr);
+    return 0;
 }
 
 
