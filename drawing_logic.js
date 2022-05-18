@@ -610,47 +610,26 @@ function lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph) {
 function lookForUnnecessaryEdgesAndReasemble(graph) {
     // console.log("graph.adjacentMap.entries()");
     // console.log(graph.adjacentMap.entries());
-    // TODO: rework
+
     let finishedVerticesArr = [];
     let tmpKey = graph.adjacentMap.keys()[Symbol.iterator]().next().value;
     let depthIndex = [0];
     reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, tmpKey, depthIndex);
 
-
-
-
-    // let outerLoopBreaker = false;
-    // for(let vert of graph.adjacentMap.entries()) {
-    //     if(vert[1].length > 1) {
-    //         for(let i = 0; i < vert[1].length; i++) {
-    //             for(let j = i + 1; j < vert[1].length; j++) {
-    //                 let arr = countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, vert[0], vert[1][i], vert[1][j]);
-    //                 let doEdgeExistsArr = checkDoEdgeExistsArr(graph, vert[0], vert[1][i], vert[1][j])
-    //                 let indxAndSum = findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
-    //                 if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
-    //                 let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [vert[0], vert[1][i], vert[1][j]], indxAndSum[0]);
-    //                 // if(tmpDebugResult === 0) {
-    //                 //     lookForUnnecessaryEdgesAndReasemble(graph);
-    //                 //     return;
-    //                 // }
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 function reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap, depthIndex) {
-    if(depthIndex[0] > 100) {
-        console.log("-----------------------depthIndex > 100----------------");
-        console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
-        console.log(keyForMap);
-        console.log("reassembleEdgesInTriangleIfNeeded graph");
-        console.log(graph);
-        console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
-        console.log(finishedVerticesArr);
-
-        return;
-    }
+    // if(depthIndex[0] > 100) {
+    //     console.log("-----------------------depthIndex > 100----------------");
+    //     console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
+    //     console.log(keyForMap);
+    //     console.log("reassembleEdgesInTriangleIfNeeded graph");
+    //     console.log(graph);
+    //     console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
+    //     console.log(finishedVerticesArr);
+    //
+    //     return;
+    // }
     let outerBreak = false;
     if(!graph.adjacentMap.has(keyForMap)) {
         if(graph.verticesMap.has(keyForMap)) finishedVerticesArr.push(keyForMap);
@@ -673,12 +652,12 @@ function reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap
             if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
             let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [keyForMap, adjArr[i], adjArr[j]], indxAndSum[0]);
             if(tmpDebugResult === 0) {
-                console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
-                console.log(keyForMap);
-                console.log("reassembleEdgesInTriangleIfNeeded graph.adjacentMap");
-                console.log(graph.adjacentMap);
-                console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
-                console.log(finishedVerticesArr);
+                // console.log("reassembleEdgesInTriangleIfNeeded keyForMap");
+                // console.log(keyForMap);
+                // console.log("reassembleEdgesInTriangleIfNeeded graph.adjacentMap");
+                // console.log(graph.adjacentMap);
+                // console.log("reassembleEdgesInTriangleIfNeeded finishedVerticesArr");
+                // console.log(finishedVerticesArr);
                 depthIndex[0] += 1;
                 reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap, depthIndex);
                 outerBreak = true;
@@ -732,16 +711,16 @@ function checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, hypo
     if(hypotenuse < sumOfCathetuses * (100 - limitInPercents)/100) return -1;
     let tmpDebugResult = addIfOneCathetusIsAbsent(graph, arrOfNamesOfVertices);
     let edgesNamesArr = [`from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[1]}`, `from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[2]}`, `from ${arrOfNamesOfVertices[1]} to ${arrOfNamesOfVertices[2]}`];
-    console.log("----------checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
-    console.log("indxOfHypotenuse");
-    console.log(indxOfHypotenuse);
-    console.log("graph.edgesMap");
-    console.log(graph.edgesMap);
-    console.log("edgesNamesArr[indxOfHypotenuse]");
-    console.log(edgesNamesArr[indxOfHypotenuse]);
-    console.log("arrOfNamesOfVertices");
-    console.log(arrOfNamesOfVertices);
-    console.log("-------END checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
+    // console.log("----------checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
+    // console.log("indxOfHypotenuse");
+    // console.log(indxOfHypotenuse);
+    // console.log("graph.edgesMap");
+    // console.log(graph.edgesMap);
+    // console.log("edgesNamesArr[indxOfHypotenuse]");
+    // console.log(edgesNamesArr[indxOfHypotenuse]);
+    // console.log("arrOfNamesOfVertices");
+    // console.log(arrOfNamesOfVertices);
+    // console.log("-------END checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded----------------");
     // I had to write this useless check to convince IDE that I need that value and not to mark it as redundant
     if(tmpDebugResult >= -1) tmpDebugResult = deleteUnnecessaryHypotenuse(graph, graph.edgesMap.get(edgesNamesArr[indxOfHypotenuse]).vertices);
     return tmpDebugResult;
