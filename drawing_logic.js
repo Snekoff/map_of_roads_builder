@@ -2,7 +2,7 @@ import {Graph} from "./graph.js";
 
 export function circle(x = 0, y = 0, indexForColor = 0) {
 
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("vertices-layer");
     let ctx = canvas.getContext("2d");
 
     ctx.beginPath();
@@ -18,8 +18,11 @@ export function circle(x = 0, y = 0, indexForColor = 0) {
 }
 
 export function line(x1 = 0, y1 = 0, x2 = 100, y2 = 100, isForVisualisation) {
+
+    //TODO: curve https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo
+
     if(!isForVisualisation) return 0;
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("game-layer");
     let ctx = canvas.getContext("2d");
 
     ctx.beginPath();
@@ -32,7 +35,7 @@ export function line(x1 = 0, y1 = 0, x2 = 100, y2 = 100, isForVisualisation) {
 }
 
 export function drawBackgroundImage(x, y, src) {
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("background-layer");
     let ctx = canvas.getContext("2d");
 
     let background = new Image();
@@ -51,11 +54,11 @@ function drawVerticeImage(x, y, type) {
     let sizes = [[90, 90], [70, 50], [80, 50]];
     if(type >= imgSrc.length) return -1;
 
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("vertices-layer");
     let ctx = canvas.getContext("2d");
 
     let icon = new Image();
-    icon.src = imgSrc[type]; // ./345d9724898967.5633bed73d62e.jpeg
+    icon.src = imgSrc[type];
 
     // Make sure the image is loaded first otherwise nothing will draw.
     icon.onload = function(){
@@ -469,7 +472,7 @@ let verticeObjectsList = [
 
 let edgeObjectsList = [];
 
-function drawVerticesEdgesAndTextOnCanvas(graph) {
+function drawEdgesAndVerticesTextOnCanvas(graph) {
     let vertices = graph.getAllVertices(graph.verticesMap);
     console.log("graph.getAllVertices()");
     console.log(vertices);
@@ -478,21 +481,20 @@ function drawVerticesEdgesAndTextOnCanvas(graph) {
     console.log(edges);
 
     refresh();
-    drawBackgroundImage(0, 0, "345d9724898967.5633bed73d62e.jpg");
-    setTimeout(() => {
-        let mul = 1;
+
+    //setTimeout(() => {
         for (let edg of edges) {
             let verticeMap = graph.verticesMap;
             let name1 = edg.vertices[0], name2 = edg.vertices[1];
             let item1 = verticeMap.get(name1);
             let item2 = verticeMap.get(name2);
-            line(item1.x * mul, item1.y * mul, item2.x * mul, item2.y * mul, edg.isForVisualisation);
+            line(item1.x, item1.y, item2.x, item2.y, edg.isForVisualisation);
         }
         for (let vert of vertices) {
-            drawImageOrColoredCircleIfCant(vert.x * mul, vert.y * mul, vert.type);
-            setTimeout(() => drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name)), 10);
+            //drawImageOrColoredCircleIfCant(vert.x, vert.y, vert.type);
+            /*setTimeout(() =>*/ drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name))/*, 50)*/;
         }
-    }, 10)
+    //}, 10)
     // let mul = 1;
     // for (let edg of edges) {
     //     let verticeMap = graph.verticesMap;
@@ -507,8 +509,14 @@ function drawVerticesEdgesAndTextOnCanvas(graph) {
     // }
 }
 
-export function initialVerticesEdgesShow() {
+function drawVerticesGraphics(graph) {
+    let vertices = graph.getAllVertices(graph.verticesMap);
+    for (let vert of vertices) {
+        drawImageOrColoredCircleIfCant(vert.x, vert.y, vert.type);
+    }
+}
 
+export function initialVerticesEdgesShow() {
     console.log(document.getElementById("btn1").value);
     let numOfVerticesToGenerate = +document.getElementById("vertices1").value;
     let verticesList = [];
@@ -525,7 +533,9 @@ export function initialVerticesEdgesShow() {
         verticeObjectsList,
         edgeObjectsList);
 
-    drawVerticesEdgesAndTextOnCanvas(graph);
+    drawBackgroundImage(0, 0, "345d9724898967.5633bed73d62e.jpg");
+    drawVerticesGraphics(graph);
+    drawEdgesAndVerticesTextOnCanvas(graph);
     return graph;
 }
 
@@ -539,10 +549,15 @@ function createEdgeAndCalculateParameters(graph, item, isEitherWay = true) {
         verticesMap.get(item[0]).setReachChange(tmp);
         if(isEitherWay) verticesMap.get(item[1]).setReachChange(tmp / 2);
         return 0;
+    } else if (Math.round(verticesMap.get(item[0]).reach - verticesMap.get(item[1]).reach) === 0) {
+        let tmp = verticesMap.get(item[1]).reach;
+        verticesMap.get(item[0]).setReachChange(tmp);
+        if(isEitherWay) verticesMap.get(item[1]).setReachChange(tmp);
+        return 0;
     }
     let tmp = verticesMap.get(item[0]).reach;
-    if(isEitherWay) verticesMap.get(item[0]).setReachChange(tmp / 2);
-    verticesMap.get(item[1]).setReachChange(tmp);
+    verticesMap.get(item[0]).setReachChange(tmp / 2);
+    if(isEitherWay) verticesMap.get(item[1]).setReachChange(tmp);
     return 0;
 }
 
@@ -558,15 +573,12 @@ export function buildEdgesAndUpdateView(graph) {
         }
     });
 
-    arrOfPairs.forEach(function (item) {
-        graph.verticesMap.get(item[0]).applyReachChange();
-        graph.verticesMap.get(item[1]).applyReachChange();
-    });
+    graph.setReachIncomeForAllVertices();
+    graph.applyReachChangeForAllVertices();
+
     lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph);
 
-    drawVerticesEdgesAndTextOnCanvas(graph);
-    // console.log("graph reach");
-    // console.log(`1.${graph.verticesMap.get(vertices.shift().name).reach} 2.${graph.verticesMap.get(vertices.shift().name).reach} 3.${graph.verticesMap.get(vertices.shift().name).reach} 4.${graph.verticesMap.get(vertices.shift().name).reach} 5.${graph.verticesMap.get(vertices.shift().name).reach} 6.${graph.verticesMap.get(vertices.shift().name).reach} 7.${graph.verticesMap.get(vertices.shift().name).reach}`);
+    drawEdgesAndVerticesTextOnCanvas(graph);
     return graph;
 }
 
@@ -586,7 +598,7 @@ function countDistancesBetweenVerticesAndReturnReachableForEach(graph) {
 }
 
 function drawTextOfVerticeValuesNearIt(vertice) {
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("game-layer");
     let ctx = canvas.getContext("2d");
     ctx.font = "bold 30px serif";
     ctx.fillStyle = "Blue";
@@ -608,8 +620,9 @@ function lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph) {
 
 
 function lookForUnnecessaryEdgesAndReasemble(graph) {
-    // console.log("graph.adjacentMap.entries()");
-    // console.log(graph.adjacentMap.entries());
+    console.log("graph.adjacentMap");
+    console.log(graph.adjacentMap);
+
 
     let finishedVerticesArr = [];
     let tmpKey = graph.adjacentMap.keys()[Symbol.iterator]().next().value;
@@ -647,8 +660,8 @@ function reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap
             let arr = countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, keyForMap, adjArr[i], adjArr[j]);
             let doEdgeExistsArr = checkDoEdgeExistsArr(graph, keyForMap, adjArr[i], adjArr[j])
             let indxAndSum = findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
-            console.log("reassembleEdgesInTriangleIfNeeded indxAndSum");
-            console.log(indxAndSum);
+            /*console.log("reassembleEdgesInTriangleIfNeeded indxAndSum");
+            console.log(indxAndSum);*/
             if(!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
             let tmpDebugResult = checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [keyForMap, adjArr[i], adjArr[j]], indxAndSum[0]);
             if(tmpDebugResult === 0) {
@@ -796,7 +809,19 @@ function deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertice1, verticeT
 
 
 function refresh() {
-    let canvas = document.getElementById("coordinateGrid");
+    let canvas = document.getElementById("game-layer");
     let ctx = canvas.getContext("2d");
     ctx.reset();
+}
+
+function save() {
+    let canvas = document.getElementById("game-layer");
+    let ctx = canvas.getContext("2d");
+    ctx.save();
+}
+
+function restore() {
+    let canvas = document.getElementById("game-layer");
+    let ctx = canvas.getContext("2d");
+    ctx.restore();
 }

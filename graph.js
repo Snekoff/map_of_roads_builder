@@ -137,7 +137,7 @@ export class Graph {
         isForVisualisation = true) {
         // TODO: check distance
         let lngth = this.countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap);
-        if(lngth === -1) return adjacentMap;
+        if(lngth === -1 || lngth === 0) return adjacentMap;
         edgesMap.set(`from ${vertice1Name} to ${vertice2Name}`, this.createEdge({vertices:[vertice1Name, vertice2Name], name: nameForNextEdge, length:lngth, protectionAmount, level, type, isForVisualisation}));
 
         return this.fillMapWithAdjacentVertices(adjacentMap, vertice1Name, [vertice2Name]);
@@ -178,6 +178,23 @@ export class Graph {
             edges.push(item);
         }
         return edges;
+    }
+
+    setReachIncome(vertice) {
+        let tmp = this.adjacentMap.get(vertice.name).length + 1;
+        vertice.setReachIncome(tmp);
+    }
+
+    setReachIncomeForAllVertices() {
+        for(let vertice of this.adjacentMap.keys()) {
+            this.setReachIncome(this.verticesMap.get(vertice));
+        }
+    }
+
+    applyReachChangeForAllVertices() {
+        for(let vertice of this.verticesMap.values()) {
+            vertice.applyReachChange();
+        }
     }
 
 
@@ -226,7 +243,8 @@ export class Vertices {
         this.defencePower = defencePower;
         this.reach = reach;
         this.reachChange = 0;
-        //this.isCapital = richness;
+        this.reachIncome = 1;
+        //this.isCapital = false;
     }
 
     changeType(newType) {
@@ -264,12 +282,18 @@ export class Vertices {
         return this[name];
     }
 
-    setReachChange(value) {
+    setReachIncome(value) {
         if(!value && typeof value !== "number") return NaN;
-        this.reachChange += value;
+        this.reachIncome = value;
+    }
+
+    setReachChange(addedValue) {
+        if(!addedValue && typeof addedValue !== "number") return NaN;
+        this.reachChange += addedValue;
     }
 
     applyReachChange() {
+        this.reachChange += this.reachIncome;
         this.reach += this.reachChange;
         if(this.reach < 0) this.reach = 0;
         this.reachChange = 0;
