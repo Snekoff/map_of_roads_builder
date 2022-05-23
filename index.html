@@ -11,14 +11,54 @@
             border: 2px solid black;
         }
 
-        canvas { position: absolute; }
-        #game-layer { z-index: 3; }
-        #vertices-layer { z-index: 2; }
-        #background-layer { z-index: 1; }
+        canvas {
+            position: absolute;
+        }
+
+        #game-layer {
+            z-index: 3;
+        }
+
+        #vertices-layer {
+            z-index: 2;
+        }
+
+        #background-layer {
+            z-index: 1;
+        }
+
+        input {
+            height: 50px;
+            width: 100px;
+        }
+
+        input[type="file"] {
+            height: 50px;
+            width: 250px;
+        }
+
+        input[type="text"] {
+            height: 44px;
+            width: 100px;
+        }
+
+        button {
+            height: 50px;
+            width: 100px;
+        }
+
+        div {
+            margin-top: 5px
+        }
+
+        form {
+            margin-top: 5px
+        }
     </style>
 </head>
 <body>
 
+<br>
 <div id="stage">
     <!--game-layer contains roads between vertices and text for now-->
     <!--TODO: rebase vertices text to vertices layer if debugging is finished-->
@@ -27,22 +67,22 @@
     <canvas id="game-layer" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
 </div>
 
-<br>
-<input type="button" style="height:50px;width:100px" value="start NEW"  id="start">
-<input type="text" style="height:44px;width:100px" value="0"  id="vertices1">
-<input type="text" style="height:44px;width:100px" value="0"  id="edges1">
-<input type="button" style="height:50px;width:100px" value="next step"  id="next_step">
-<input type="button" style="height:50px;width:100px" value="save"  id="save">
-<!--input type="button" style="height:50px;width:100px" value="load"  id="load"-->
+<div id="buttons">
+    <input type="button" value="start NEW" id="start">
+    <input type="text" value="0" id="vertices1">
+    <input type="text" value="0" id="edges1">
+    <input type="button" value="next step" id="next_step">
+    <input type="button" value="save" id="save">
+    <!--input type="button" value="load"  id="load"-->
+</div>
 
 
 <form id="upload">
-    <label for="file">File to upload</label>
+    <label for="file" style="margin-left: 2px; margin-right: 83px">File to upload</label>
     <input type="file" id="file" accept=".json">
 
-    <button>Upload</button>
+    <button>load</button>
 </form>
-
 
 
 <script type="module">
@@ -75,8 +115,6 @@
     // })
 
 
-
-
     let form = document.querySelector('#upload');
     form.addEventListener('submit', saveAndLoad.load);
     //console.log("--temp--", temp);
@@ -90,9 +128,6 @@
             drawingLogic.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
     })
-
-
-
 
 
 </script>
