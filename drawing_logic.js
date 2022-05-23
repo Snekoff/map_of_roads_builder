@@ -34,12 +34,12 @@ export function line(x1 = 0, y1 = 0, x2 = 100, y2 = 100, isForVisualisation) {
 
 }
 
-export function drawBackgroundImage(x, y, src) {
+export function drawBackgroundImage(x, y, src = "345d9724898967.5633bed73d62e.jpg") {
     let canvas = document.getElementById("background-layer");
     let ctx = canvas.getContext("2d");
 
     let background = new Image();
-    background.src = src; // ./345d9724898967.5633bed73d62e.jpeg
+    background.src = src;
     let width = 4000;
     let height = 2000;
 
@@ -472,7 +472,7 @@ let verticeObjectsList = [
 
 let edgeObjectsList = [];
 
-function drawEdgesAndVerticesTextOnCanvas(graph) {
+export function drawEdgesAndVerticesTextOnCanvas(graph) {
     let vertices = graph.getAllVertices(graph.verticesMap);
     console.log("graph.getAllVertices()");
     console.log(vertices);
@@ -491,41 +491,30 @@ function drawEdgesAndVerticesTextOnCanvas(graph) {
             line(item1.x, item1.y, item2.x, item2.y, edg.isForVisualisation);
         }
         for (let vert of vertices) {
-            //drawImageOrColoredCircleIfCant(vert.x, vert.y, vert.type);
-            /*setTimeout(() =>*/ drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name))/*, 50)*/;
+
+             drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name));
         }
     //}, 10)
-    // let mul = 1;
-    // for (let edg of edges) {
-    //     let verticeMap = graph.verticesMap;
-    //     let name1 = edg.vertices[0], name2 = edg.vertices[1];
-    //     let item1 = verticeMap.get(name1);
-    //     let item2 = verticeMap.get(name2);
-    //     line(item1.x * mul, item1.y * mul, item2.x * mul, item2.y * mul, edg.isForVisualisation);
-    // }
-    // for (let vert of vertices) {
-    //     circle(vert.x * mul, vert.y * mul, vert.type);
-    //     drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.name));
-    // }
+
 }
 
-function drawVerticesGraphics(graph) {
+export function drawVerticesGraphics(graph) {
     let vertices = graph.getAllVertices(graph.verticesMap);
     for (let vert of vertices) {
         drawImageOrColoredCircleIfCant(vert.x, vert.y, vert.type);
     }
 }
 
-export function initialVerticesEdgesShow() {
-    console.log(document.getElementById("btn1").value);
+export function initialVerticesEdgesShow(noRandomGeneration = false) {
+    console.log(document.getElementById("start").value);
     let numOfVerticesToGenerate = +document.getElementById("vertices1").value;
     let verticesList = [];
     let verticesNames = [];
     let edgesList = [];
-    randomPointsGeneration(numOfVerticesToGenerate, verticesList, verticesNames, edgesList);
+    if(!noRandomGeneration) randomPointsGeneration(numOfVerticesToGenerate, verticesList, verticesNames, edgesList);
 
 
-    let graph = new Graph(0, 0, 0, 0, 0,
+    let graph = new Graph(0,
         verticesList,
         verticesNames,
         edgesList,
@@ -533,7 +522,7 @@ export function initialVerticesEdgesShow() {
         verticeObjectsList,
         edgeObjectsList);
 
-    drawBackgroundImage(0, 0, "345d9724898967.5633bed73d62e.jpg");
+    drawBackgroundImage(0, 0);
     drawVerticesGraphics(graph);
     drawEdgesAndVerticesTextOnCanvas(graph);
     return graph;
@@ -613,13 +602,13 @@ function lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph) {
     /*  Для всіх точок з яких виходить більше ніж один шлях - зробити перевірку: Вважатимемо відправну точку точкою А, вона з'єднана з точкою B та точкою C шляхами.
 		Уявимо що В та С з'єднані - отримаємо трикутник. Порахуємо сторони трикутника. Якщо Гіпотенуза(найдовший шлях) буде менше ніж сумма катетів на 10% (попередня планка)
 		то Видалити Гіпотенузу та з'єднати В та С, додавши точці відправній та найдальшій - бонуси. Якщо ж Гіпотенуза складає < 90% від сумми катетів то тоді залишаємо все як є.*/
-    lookForUnnecessaryEdgesAndReasemble(graph);
+    lookForUnnecessaryEdgesAndReassemble(graph);
     return graph;
 }
 
 
 
-function lookForUnnecessaryEdgesAndReasemble(graph) {
+function lookForUnnecessaryEdgesAndReassemble(graph) {
     console.log("graph.adjacentMap");
     console.log(graph.adjacentMap);
 
@@ -790,19 +779,21 @@ function deleteUnnecessaryHypotenuse(graph, vertices) {
 }
 
 function deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertice1, verticeToDelete) {
-    if(graph.adjacentMap.get(vertice1)) return -1;
+    if(!graph.adjacentMap.has(vertice1)) return -1;
     let adjacentArr = graph.adjacentMap.get(vertice1);
-    console.log("-------------deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
-    console.log("vertice1");
-    console.log(vertice1);
-    console.log("verticeToDelete");
-    console.log(verticeToDelete);
-    console.log("graph.adjacentMap.get(vertice1)");
-    console.log(graph.adjacentMap.get(vertice1));
-    console.log("---------END deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
+    // console.log("-------------deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
+    // console.log("vertice1");
+    // console.log(vertice1);
+    // console.log("verticeToDelete");
+    // console.log(verticeToDelete);
+    // console.log("graph.adjacentMap.get(vertice1)");
+    // console.log(graph.adjacentMap.get(vertice1));
+    // console.log("---------END deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
 
     let indx = adjacentArr.indexOf(verticeToDelete);
-    if(indx > -1) adjacentArr.splice(indx, 1);
+    if(indx === -1) return -1;
+
+    adjacentArr.splice(indx, 1);
     graph.adjacentMap.set(vertice1, adjacentArr);
     return 0;
 }

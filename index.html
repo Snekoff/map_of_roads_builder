@@ -28,25 +28,71 @@
 </div>
 
 <br>
-<input type="button" style="height:50px;width:100px" value="run"  id="btn1">
+<input type="button" style="height:50px;width:100px" value="start NEW"  id="start">
 <input type="text" style="height:44px;width:100px" value="0"  id="vertices1">
 <input type="text" style="height:44px;width:100px" value="0"  id="edges1">
-<input type="button" style="height:50px;width:100px" value="next step"  id="btn2">
+<input type="button" style="height:50px;width:100px" value="next step"  id="next_step">
+<input type="button" style="height:50px;width:100px" value="save"  id="save">
+<!--input type="button" style="height:50px;width:100px" value="load"  id="load"-->
+
+
+<form id="upload">
+    <label for="file">File to upload</label>
+    <input type="file" id="file" accept=".json">
+
+    <button>Upload</button>
+</form>
 
 
 
 <script type="module">
-    //import {Graph} from "./graph.js";
+    import {Graph} from "./graph.js";
     import * as drawingLogic from "./drawing_logic.js";
+    import * as saveAndLoad from "./save_and_load_logic.js";
 
     let graph;
-    document.getElementById("btn1").addEventListener('click', () => {
+    document.getElementById("start").addEventListener('click', () => {
         graph = drawingLogic.initialVerticesEdgesShow();
     })
 
-    document.getElementById("btn2").addEventListener('click', () => {
+    document.getElementById("next_step").addEventListener('click', () => {
         graph = drawingLogic.buildEdgesAndUpdateView(graph);
     })
+
+    document.getElementById("save").addEventListener('click', () => {
+        saveAndLoad.save(graph);
+    })
+
+    // document.getElementById("load").addEventListener('click', () => {
+    //     //graph = saveAndLoad.load();
+    //     graph = saveAndLoad.getLoadedGraph();
+    //     console.log("graph", graph);
+    //     drawingLogic.drawBackgroundImage(0, 0);
+    //     drawingLogic.drawVerticesGraphics(graph);
+    //     drawingLogic.drawEdgesAndVerticesTextOnCanvas(graph);
+    //     //graph = drawingLogic.initialVerticesEdgesShow();
+    //     //graph = drawingLogic.buildEdgesAndUpdateView(graph);
+    // })
+
+
+
+
+    let form = document.querySelector('#upload');
+    form.addEventListener('submit', saveAndLoad.load);
+    //console.log("--temp--", temp);
+
+    form.addEventListener('submit', () => {
+        setTimeout(() => {
+            graph = saveAndLoad.getLoadedGraph();
+            console.log("graph", graph);
+            drawingLogic.drawBackgroundImage(0, 0);
+            drawingLogic.drawVerticesGraphics(graph);
+            drawingLogic.drawEdgesAndVerticesTextOnCanvas(graph);
+        }, 100)
+    })
+
+
+
 
 
 </script>

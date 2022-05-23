@@ -2,11 +2,7 @@ export class Graph {
     // defining vertex array and
     // adjacent list
     constructor(
-        numOfVertices, // to generate randomly
-        minX, // starting coordinate
-        minY,
-        maxX,
-        maxY,
+        numOfVertices = 0, // to generate randomly
         verticesList = [], // [[x1, y1,], [x2, y2], ... [x3, y3]]
         verticesNames = [], // [ 'name1', 'name2', ...  'name3']
         edgesList = [], // [['name1', 'name2',], ['name2', 'name3'], ... ['name3', 'name2']]
@@ -84,7 +80,7 @@ export class Graph {
         return name;
     }
 
-    createVertice({
+    createVertice(params/*{
         x,
         y,
         name,
@@ -95,9 +91,9 @@ export class Graph {
         numOfWares = 0,
         defencePower = 0,
         reach = 0,
-        isForVisualisation = true }) {
+        isForVisualisation = true }*/) {
 
-        return new Vertices(
+        return new Vertices(params/*
             x,
             y,
             name,
@@ -108,7 +104,7 @@ export class Graph {
             numOfWares,
             defencePower,
             reach,
-            isForVisualisation);
+            isForVisualisation*/);
     }
 
     createEdge({vertices, name, length, protectionAmount = 0, level = 0, type = 0, isForVisualisation = true }) {
@@ -197,6 +193,66 @@ export class Graph {
         }
     }
 
+    save() {
+        let save_obj = {};
+        save_obj.objType = "Graph";
+
+        for(let key in this) {
+            if(typeof this[key] === "object" && !Array.isArray(this[key])) {
+                save_obj[key] = [];
+                let arrOfEntries = Array.from(this[key].entries());
+
+                for(let innerKey = 0; innerKey < arrOfEntries.length; innerKey++) {
+                    let value = arrOfEntries[innerKey][1];
+                    if(value instanceof Edge || value instanceof Vertices) {
+                        value = arrOfEntries[innerKey][1].save();
+                    }
+                    save_obj[key].push([arrOfEntries[innerKey][0], value]);
+                }
+            }
+            else save_obj[key] = this[key];
+        }
+        return save_obj;
+    }
+
+    static load(paramsObj) {
+        let graph = new Graph();
+        if(typeof paramsObj === "string") paramsObj = JSON.parse(paramsObj);
+        if(!paramsObj.objType && paramsObj.objType !== "Graph") {
+            // console.log("Graph.load paramsObj", paramsObj);
+            // console.log("Graph.load typeof paramsObj", typeof paramsObj);
+            // console.log("Graph.load paramsObj.objType", paramsObj.objType);
+            return -1;
+        }
+
+        for(let key in paramsObj) {
+            // console.log("--------------------------------paramsObj---------------------------------");
+            // console.log("key", key);
+            // console.log("typeof paramsObj[key]", typeof paramsObj[key]);
+            // console.log("paramsObj[key]", paramsObj[key]);
+            // console.log("paramsObj[key][0]", paramsObj[key][0]);
+            // console.log("Array.isArray(paramsObj[key]", Array.isArray(paramsObj[key]));
+            // console.log("Array.isArray(paramsObj[key][0])", Array.isArray(paramsObj[key][0]));
+
+            if(typeof paramsObj[key] === "object" && Array.isArray(paramsObj[key]) && paramsObj[key].at(0) && Array.isArray(paramsObj[key][0])) {
+                // console.log("+++++++++++++++++++++++++++++++in if+++++++++++++++++++++++++++++++++++++++++++++++++");
+                // console.log("graph[key]", graph[key]);
+                // console.log("paramsObj[key][0][0]", paramsObj[key][0][0]);
+                // console.log("paramsObj[key][0][1]", paramsObj[key][0][1]);
+                // console.log("typeof paramsObj[key][0][1]", typeof paramsObj[key][0][1]);
+
+                for(let i = 0; i < paramsObj[key].length; i++) {
+                    let value = paramsObj[key][i][1];
+                    if(value.objType && value.objType === "Vertice") value = Vertices.load(value);
+                    if(value.objType && value.objType === "Edge") value = Edge.load(value);
+                    graph[key].set(paramsObj[key][i][0], value);
+                }
+            }
+            else graph[key] = paramsObj[key];
+        }
+        return graph;
+    }
+
 
     // addVertex(v)
     // addEdge(v, w)
@@ -210,18 +266,22 @@ export class Graph {
 
 export class Vertices {
 
-    constructor(
-        x,
-        y,
-        name,
-        type,
-        richness,
-        prosperity,
-        incomeToAddInNextTurn,
-        numOfWares,
-        defencePower,
-        reach,
-        isForVisualisation = true) {
+    constructor({
+                    x,
+                    y,
+                    name,
+                    type,
+                    richness,
+                    prosperity,
+                    incomeToAddInNextTurn,
+                    numOfWares,
+                    defencePower,
+                    reach,
+                    isForVisualisation = true,
+                    reachChange = 0,
+                    reachIncome = 1,
+                }
+        ) {
 
         this.x = x;
         this.y = y;
@@ -242,8 +302,8 @@ export class Vertices {
         //this.resourcesNeeded = resourcesNeeded;
         this.defencePower = defencePower;
         this.reach = reach;
-        this.reachChange = 0;
-        this.reachIncome = 1;
+        this.reachChange = reachChange;
+        this.reachIncome = reachIncome;
         //this.isCapital = false;
     }
 
@@ -299,6 +359,21 @@ export class Vertices {
         this.reachChange = 0;
     }
 
+    save() {
+        let save_obj = {};
+        save_obj.objType = "Vertice";
+
+        for(let key in this) {
+            save_obj[key] = this[key];
+        }
+        return save_obj;
+    }
+
+    static load(params) {
+        if(!params.objType && params.objType !== "Vertice") return -1;
+        return new Vertices(params);
+    }
+
 }
 
 export class Edge {
@@ -313,6 +388,20 @@ export class Edge {
         this.level = level;
         this.isForVisualisation = isForVisualisation;
 
+    }
+
+    save() {
+        let save_obj = {};
+        save_obj.objType = "Edge";
+        for(let key in this) {
+            save_obj[key] = this[key];
+        }
+        return save_obj;
+    }
+
+    static load(params) {
+        if(!params.objType && params.objType !== "Edge") return -1;
+        return new Edge(params);
     }
 
 }
