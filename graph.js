@@ -1,3 +1,8 @@
+import {Vertice} from "./vertice.js";
+import {Edge} from "./edge.js";
+import {Epoch} from "./epoch.js";
+
+
 export class Graph {
     // defining vertex array and
     // adjacent list
@@ -8,7 +13,8 @@ export class Graph {
         edgesList = [], // [['name1', 'name2',], ['name2', 'name3'], ... ['name3', 'name2']]
         edgesNames = [], // [ 'name1', 'name2', ...  'name3']
         verticeObjectsList = [],
-        edgeObjectsList = []
+        edgeObjectsList = [],
+        epoch_index = 0
     ) {
 
         this.numOfVertices = numOfVertices;
@@ -23,6 +29,7 @@ export class Graph {
         this.edgesMap = new Map();
         this.verticeObjectsList = verticeObjectsList;
         this.edgeObjectsList = edgeObjectsList;
+        this.epoch = new Epoch(epoch_index);
 
         // this.nameForNextVertice = this.checkVerticesListAndCreateVertices(
         //     this.verticesList,
@@ -52,34 +59,6 @@ export class Graph {
         return verticesMap;
     }
 
-    createEdgesFromObjects(edgeObjectsList) {
-
-    }
-
-    checkVerticesListAndCreateVertices(verticesList, verticesMap, verticesNames, name) {
-        if(verticesList.length < 1) return name;
-        let grph = this;
-        verticesList.forEach(function(item, index) {
-            // TODO: check for error prone
-            let tmpName = verticesNames[index] || verticesNames[index] === 0 ? verticesNames[index] : name++;
-            let vrtce = grph.createVertice({x: item[0], y: item[1], name: tmpName});
-            verticesMap.set(tmpName, vrtce);
-        })
-        return name;
-    }
-
-    checkEdgesListAndCreateEdges(edgesList, edgesMap, edgesNames, name, verticesMap, adjacentMap) {
-        if(edgesList.length < 1) return name;
-        let grph = this;
-        edgesList.forEach(function(item, index) {
-            // TODO: check for error prone
-            let tmpName = edgesNames[index] || edgesNames[index] === 0 ? edgesNames[index] : name++;
-            let edge = grph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[0], item[1], adjacentMap, edgesMap, tmpName, verticesMap);//grph.createEdge(item, grph.countDistanceBetweenVertices(item[0], item[1], verticesMap));
-            //edgesMap.set(tmpName, edge);
-        })
-        return name;
-    }
-
     createVertice(params/*{
         x,
         y,
@@ -93,7 +72,7 @@ export class Graph {
         reach = 0,
         isForVisualisation = true }*/) {
 
-        return new Vertices(params/*
+        return new Vertice(params/*
             x,
             y,
             name,
@@ -108,13 +87,16 @@ export class Graph {
     }
 
     createEdge({vertices, name, length, protectionAmount = 0, level = 0, type = 0, isForVisualisation = true }) {
-        return new Edge({vertices, name, length, protectionAmount, level, type, isForVisualisation});
+        let vrtc1 = this.verticesMap.get(vertices[0]);
+        let vrtc2 = this.verticesMap.get(vertices[1]);
+        let reach = Math.min(vrtc1.reach, vrtc2.reach);
+        return new Edge({vertices, name, length, protectionAmount, level, type, isForVisualisation, bandwidth:this.epoch.getPriceForRoad()[level], reach});
     }
 
     fillMapWithAdjacentVertices(adjacentMap, verticeName, addedAdjacentList) {
         if(adjacentMap.has(verticeName)) {
             let tempListAdj = adjacentMap.get(verticeName).forEach(function (item) { addedAdjacentList.push(item); })
-            adjacentMap.set(verticeName, tempListAdj);
+            adjacentMap.set(verticeName, addedAdjacentList);
         }
         adjacentMap.set(verticeName, addedAdjacentList);
         return adjacentMap;
@@ -130,16 +112,35 @@ export class Graph {
         protectionAmount = 0,
         level = 0,
         type = 0,
+        isCheckNeeded= true,
         isForVisualisation = true) {
-        // TODO: check distance
-        let lngth = this.countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap);
-        if(lngth === -1 || lngth === 0) return adjacentMap;
-        edgesMap.set(`from ${vertice1Name} to ${vertice2Name}`, this.createEdge({vertices:[vertice1Name, vertice2Name], name: nameForNextEdge, length:lngth, protectionAmount, level, type, isForVisualisation}));
+        let length = this.countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap);
+        let checkResult = 0;
 
-        return this.fillMapWithAdjacentVertices(adjacentMap, vertice1Name, [vertice2Name]);
+        let prevLevel;
+        let isEdgeThere = edgesMap.has(`from ${vertice1Name} to ${vertice2Name}`);
+        if(isEdgeThere) prevLevel = edgesMap.get(`from ${vertice1Name} to ${vertice2Name}`).level;
+        if(prevLevel && prevLevel >= level) return -1;
+
+        if (isCheckNeeded) checkResult = this.checkAndSubtractMoneyOnBuildingIfNeeded(vertice1Name, vertice2Name, verticesMap, length, false, this.epoch, level, prevLevel);
+        if(checkResult === -1) return -1;
+
+        if(isEdgeThere) {
+            let edge = edgesMap.get(`from ${vertice1Name} to ${vertice2Name}`);
+            edge.level = level;
+            let rech = this.verticesMap.get(vertice1Name).reach;
+            edge.reach = rech;
+        }
+        else {
+            edgesMap.set(`from ${vertice1Name} to ${vertice2Name}`, this.createEdge({vertices:[vertice1Name, vertice2Name], name: nameForNextEdge, length, protectionAmount, level, type, isForVisualisation}));
+            this.fillMapWithAdjacentVertices(adjacentMap, vertice1Name, [vertice2Name]);
+        }
+        return 0;
     }
 
+
     countDistanceBetweenVertices(vertice1Name, vertice2Name, verticesMap) {
+        // TODO: check distance
         let distance = -1;
         let vertice1 = verticesMap.get(vertice1Name);
         let vertice2 = verticesMap.get(vertice2Name);
@@ -153,6 +154,155 @@ export class Graph {
         );
         return distance;
     }
+
+    checkAndSubtractMoneyOnBuildingIfNeeded(vertice1Name, vertice2Name, verticesMap, length, isCheck, epoch = {priceForRoadLevel: 3}, roadLevel = 0, prevLevel = 0) {
+        let vertice1 = verticesMap.get(vertice1Name);
+        let vertice2 = verticesMap.get(vertice2Name);
+        if( !vertice1 || !vertice2 ) return -1;
+        if( length <= 0 ) return -1;
+        let priceForRoadLevelNeg = -1 * epoch.priceForRoadLevel;
+        let priceForRoadLevel = epoch.getPriceForRoad()[roadLevel] - epoch.getPriceForRoad()[prevLevel];
+        // console.log('name1',vertice1Name);
+        // console.log('name2',vertice2Name);
+        // console.log('length',length);
+        // console.log('vertice1',vertice1);
+        // console.log('vertice2',vertice2);
+        let type1 = vertice1.type;
+        let type2 = vertice2.type;
+        let richness1 = vertice1.richness;
+        let richness2 = vertice2.richness;
+        let reach1 = vertice1.reach;
+        let reach2 = vertice2.reach;
+        let checkResult = -1;
+        let mul1 = 0.0, mul2 = 0.0;
+        if (type1 === 0 || type1 === 2) {
+            if (type2 === 0 && reach1 + reach2 >= length && richness1 + richness2 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1 / 2;
+                mul2 = 1 / 2;
+            }
+            if (type2 === 1 && reach1 >= length && richness1 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1;
+                mul2 = 0;
+            }
+            if (type2 === 2 && reach1 + reach2 >= length && richness1 + richness2 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1 / 2;
+                mul2 = 1 / 2;
+            }
+            if (type2 === 3 && reach1 >= length && richness1 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1;
+                mul2 = 0;
+            }
+            if (type2 === 4) {
+                checkResult = -1;
+
+            }
+        }
+        if (type1 === 1) {
+            if (type2 === 0 && reach1 + reach2 >= length && richness1 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1;
+                mul2 = 0;
+            }
+            if (type2 === 1 && reach1 >= length && richness1 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1;
+                mul2 = 0;
+            }
+            if (type2 === 2 && reach1 + reach2 >= length && richness1 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1;
+                mul2 = 0;
+            }
+            if (type2 === 3) {
+                checkResult = -1;
+
+            }
+            if (type2 === 4) {
+                checkResult = -1;
+
+            }
+        }
+        // if(type1 === 2) {
+        //     if(type2 === 0 ) {
+        //         return 0;
+        //     }
+        //     if(type2 === 1 ) {
+        //         return 0;
+        //     }
+        //     if(type2 === 2 ) {
+        //         return 0;
+        //     }
+        //     if(type2 === 3 ) {
+        //         return 0;
+        //     }
+        //     if(type2 === 4) {
+        //         return -1;
+        //     }
+        // }
+        if (type1 === 3) {
+            if (type2 === 0 && reach1 + reach2 >= length && richness1 + richness2 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1 / 2;
+                mul2 = 1 / 2;
+            }
+            if (type2 === 1 && reach1 >= length) {
+                checkResult = 0;
+                mul1 = 0;
+                mul2 = 0;
+            }
+            if (type2 === 2 && reach1 + reach2 >= length && richness1 + richness2 >= priceForRoadLevel) {
+                checkResult = 0;
+                mul1 = 1 / 2;
+                mul2 = 1 / 2;
+            }
+            if (type2 === 3 && reach1 >= length) {
+                checkResult = 0;
+                mul1 = 0;
+                mul2 = 0;
+            }
+            if (type2 === 4) {
+                checkResult = -1;
+
+            }
+        }
+        if (type1 === 4) {
+            if (type2 === 0 && reach1 >= length && richness1 >= 2 * priceForRoadLevel / 3) {
+                checkResult = 0;
+                mul1 = 2 / 3;
+                mul2 = 0;
+            }
+            if (type2 === 1 && reach1 >= length && richness1 >= 2 * priceForRoadLevel / 3) {
+                checkResult = 0;
+                mul1 = 2 / 3;
+                mul2 = 0;
+            }
+            if (type2 === 2 && reach1 + reach2 >= length) {
+                checkResult = -1;
+
+            }
+            if (type2 === 3 && reach1 >= length) {
+                checkResult = -1;
+
+            }
+            if (type2 === 4 && reach1 + reach2 >= length && richness1 + richness2 >= 2 * priceForRoadLevel / 3) {
+                checkResult = 0;
+                mul1 = 1 / 3;
+                mul2 = 1 / 3;
+            }
+        }
+
+         if (!isCheck) {
+            //if (checkResult === -1) return -1;
+            vertice1.changeRichness(-1 * priceForRoadLevel * mul1);
+            vertice2.changeRichness(-1 * priceForRoadLevel * mul2);
+        }
+        return checkResult;
+    }
+
 
     getVerticeOrEdgeByName(name, map) {
         return map.get(name);
@@ -176,14 +326,25 @@ export class Graph {
         return edges;
     }
 
-    setReachIncome(vertice) {
-        let tmp = this.adjacentMap.get(vertice.name).length + 1;
-        vertice.setReachIncome(tmp);
+    setReachIncome(vertice, epoch, valueFromRoad, roadLevel) {
+        let base = 1;
+        //let adjMapLngth = this.adjacentMap.get(vertice.name).length;
+        let roadModifier = 1/1000 * epoch.bandwidthForRoadLevel[epoch.epoch_index][roadLevel] / epoch.getComfortableBandwidth();
+        let roadAddedReach = valueFromRoad * roadModifier;
+
+        vertice.setReachIncome(base + roadAddedReach/*adjMapLngth * roadModifier*/, true);
     }
 
     setReachIncomeForAllVertices() {
         for(let vertice of this.adjacentMap.keys()) {
-            this.setReachIncome(this.verticesMap.get(vertice));
+            let arr = this.adjacentMap.get(vertice);
+            for (let i = 0; i < arr.length; i++) {
+                let edge = this.edgesMap.get(`from ${vertice} to ${arr[i]}`);
+                if(!edge.isForVisualisation) continue;
+                let roadReach = edge.reach;
+                let roadLevel = edge.level;
+                this.setReachIncome(this.verticesMap.get(vertice), this.epoch, roadReach, roadLevel);
+            }
         }
     }
 
@@ -192,6 +353,39 @@ export class Graph {
             vertice.applyReachChange();
         }
     }
+
+    setIncomeChange(vertice, epoch, valueFromRoad, roadLevel) {
+        //let tmp = this.adjacentMap.get(vertice.name).length / 3;
+        let base = 1;
+        let roadModifier = 1/30000 * epoch.bandwidthForRoadLevel[epoch.epoch_index][roadLevel] / epoch.getComfortableBandwidth();
+        let roadAddedReach = valueFromRoad * roadModifier;
+
+        vertice.changeIncomeToAddInNextTurn(base + roadAddedReach/*adjMapLngth * roadModifier*/, true);
+    }
+
+    setIncomeChangeForAllVertices() {
+        for(let vertice of this.adjacentMap.keys()) {
+            let arr = this.adjacentMap.get(vertice);
+            for (let i = 0; i < arr.length; i++) {
+                let edge = this.edgesMap.get(`from ${vertice} to ${arr[i]}`);
+                if(!edge.isForVisualisation) continue;
+                let roadReach = edge.reach;
+                let roadLevel = edge.level;
+                this.setIncomeChange(this.verticesMap.get(vertice), this.epoch, roadReach, roadLevel);
+            }
+        }
+        // let tmp = this.adjacentMap.keys();
+        // for(let vertice of this.adjacentMap.keys()) {
+        //     this.setIncomeChange(this.verticesMap.get(vertice));
+        // }
+    }
+
+    applyIncomeChangeForAllVertices() {
+        for(let vertice of this.verticesMap.values()) {
+            vertice.applyIncomeChange();
+        }
+    }
+
 
     save() {
         let save_obj = {};
@@ -204,7 +398,7 @@ export class Graph {
 
                 for(let innerKey = 0; innerKey < arrOfEntries.length; innerKey++) {
                     let value = arrOfEntries[innerKey][1];
-                    if(value instanceof Edge || value instanceof Vertices) {
+                    if(value instanceof Edge || value instanceof Vertice || value instanceof Epoch) {
                         value = arrOfEntries[innerKey][1].save();
                     }
                     save_obj[key].push([arrOfEntries[innerKey][0], value]);
@@ -243,8 +437,9 @@ export class Graph {
 
                 for(let i = 0; i < paramsObj[key].length; i++) {
                     let value = paramsObj[key][i][1];
-                    if(value.objType && value.objType === "Vertice") value = Vertices.load(value);
+                    if(value.objType && value.objType === "Vertice") value = Vertice.load(value);
                     if(value.objType && value.objType === "Edge") value = Edge.load(value);
+                    if(value.objType && value.objType === "Epoch") value = Epoch.load(value);
                     graph[key].set(paramsObj[key][i][0], value);
                 }
             }
@@ -262,146 +457,4 @@ export class Graph {
 
     // bfs(v)
     // dfs(v)
-}
-
-export class Vertices {
-
-    constructor({
-                    x,
-                    y,
-                    name,
-                    type,
-                    richness,
-                    prosperity,
-                    incomeToAddInNextTurn,
-                    numOfWares,
-                    defencePower,
-                    reach,
-                    isForVisualisation = true,
-                    reachChange = 0,
-                    reachIncome = 1,
-                }
-        ) {
-
-        this.x = x;
-        this.y = y;
-        this.isForVisualisation = isForVisualisation;
-        this.name = name;
-
-        // 0 - city
-        // 1 - village
-        // 2 - fort
-        // 3 - camp
-        // 4 - criminal camp
-        this.type = type;
-        this.richness = richness;
-        this.prosperity = prosperity;
-        this.incomeToAddInNextTurn = incomeToAddInNextTurn;
-        this.numOfWares = numOfWares;
-        //this.resources = resources;
-        //this.resourcesNeeded = resourcesNeeded;
-        this.defencePower = defencePower;
-        this.reach = reach;
-        this.reachChange = reachChange;
-        this.reachIncome = reachIncome;
-        //this.isCapital = false;
-    }
-
-    changeType(newType) {
-        this.type = newType;
-    }
-
-    changeRichness(newRichness) {
-        this.type = newRichness;
-    }
-
-    changeProsperity(newProsperity) {
-        this.type = newProsperity;
-    }
-
-    changeIncomeToAddInNextTurn(newIncomeToAddInNextTurn) {
-        this.type = newIncomeToAddInNextTurn;
-    }
-
-    changeNumOfWares(newNumOfWares) {
-        this.type = Math.max(newNumOfWares, 0);
-    }
-
-    changeDefencePower(newDefencePower) {
-        this.type = Math.max(newDefencePower, 0);
-    }
-
-    changeReach(newReach) {
-        this.type = Math.max(newReach, 0);
-    }
-
-    getByVariableName(name) {
-        if (!this.hasOwnProperty(name)) {
-            return `Field ${name} is not present in obj`;
-        }
-        return this[name];
-    }
-
-    setReachIncome(value) {
-        if(!value && typeof value !== "number") return NaN;
-        this.reachIncome = value;
-    }
-
-    setReachChange(addedValue) {
-        if(!addedValue && typeof addedValue !== "number") return NaN;
-        this.reachChange += addedValue;
-    }
-
-    applyReachChange() {
-        this.reachChange += this.reachIncome;
-        this.reach += this.reachChange;
-        if(this.reach < 0) this.reach = 0;
-        this.reachChange = 0;
-    }
-
-    save() {
-        let save_obj = {};
-        save_obj.objType = "Vertice";
-
-        for(let key in this) {
-            save_obj[key] = this[key];
-        }
-        return save_obj;
-    }
-
-    static load(params) {
-        if(!params.objType && params.objType !== "Vertice") return -1;
-        return new Vertices(params);
-    }
-
-}
-
-export class Edge {
-
-    constructor({vertices, name, length, protectionAmount, level, type = 0, isForVisualisation = true}) {
-        this.vertices = vertices; // ['name1', 'name2']
-        this.name = name;
-
-        this.type = type; // 0 - default type, 1 - hidden type
-        this.length = length;
-        this.protectionAmount = protectionAmount;
-        this.level = level;
-        this.isForVisualisation = isForVisualisation;
-
-    }
-
-    save() {
-        let save_obj = {};
-        save_obj.objType = "Edge";
-        for(let key in this) {
-            save_obj[key] = this[key];
-        }
-        return save_obj;
-    }
-
-    static load(params) {
-        if(!params.objType && params.objType !== "Edge") return -1;
-        return new Edge(params);
-    }
-
 }
