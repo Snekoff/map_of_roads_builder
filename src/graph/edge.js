@@ -1,16 +1,17 @@
 export class Edge {
 
-    constructor({vertices, name, length, protectionAmount, level, type = 0, isForVisualisation = true, bandwidth = 1, reach = 1}) {
+    constructor({vertices, name, length, id, protectionAmount, level, type = 0, isForVisualisation = true, bandwidth = 1, reach = 1}) {
         this.vertices = vertices; // ['name1', 'name2']
         this.name = name;
+        this.id = id;
 
         this.type = type; // 0 - default type, 1 - hidden type
-        this.length = length;
-        this.protectionAmount = protectionAmount;
+        this.length = Math.round(length * 100 ) / 100;
+        this.protectionAmount = Math.round(protectionAmount * 100 ) / 100;
         this.level = level;
         this.isForVisualisation = isForVisualisation;
         this.bandwidth = bandwidth;
-        this.reach = reach;
+        this.reach = Math.round(reach * 100 ) / 100;
     }
 
     save() {

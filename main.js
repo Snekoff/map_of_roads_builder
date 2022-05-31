@@ -1,5 +1,5 @@
 //import {Graph} from "./graph.js";
-import * as drawingLogic from "./drawing_logic.js";
+import * as drawingLogic from "./src/drawing.js";
 
 
 

@@ -5,8 +5,8 @@
     <title>Title</title>
     <style>
         #stage {
-            width: 2000px;
-            height: 1000px;
+            width: 2002px;
+            height: 1002px;
             position: relative;
             border: 2px solid black;
         }
@@ -86,10 +86,10 @@
 
 
 <script type="module">
-    import {Graph} from "./graph.js";
-    import * as drawingLogic from "./drawing_logic.js";
-    import * as saveAndLoad from "./save_and_load_logic.js";
+    import {DrawingLogic} from "./src/drawing_logic.js";
+    import * as saveAndLoad from "./src/save_and_load_logic.js";
 
+    let drawingLogic = new DrawingLogic();
     let graph;
     document.getElementById("start").addEventListener('click', () => {
         graph = drawingLogic.initialVerticesEdgesShow();
@@ -103,29 +103,18 @@
         saveAndLoad.save(graph);
     })
 
-    // document.getElementById("load").addEventListener('click', () => {
-    //     //graph = saveAndLoad.load();
-    //     graph = saveAndLoad.getLoadedGraph();
-    //     console.log("graph", graph);
-    //     drawingLogic.drawBackgroundImage(0, 0);
-    //     drawingLogic.drawVerticesGraphics(graph);
-    //     drawingLogic.drawEdgesAndVerticesTextOnCanvas(graph);
-    //     //graph = drawingLogic.initialVerticesEdgesShow();
-    //     //graph = drawingLogic.buildEdgesAndUpdateView(graph);
-    // })
-
 
     let form = document.querySelector('#upload');
     form.addEventListener('submit', saveAndLoad.load);
-    //console.log("--temp--", temp);
+    console.log("--SaveAndLoadLogic--");
 
     form.addEventListener('submit', () => {
         setTimeout(() => {
             graph = saveAndLoad.getLoadedGraph();
             console.log("graph", graph);
-            drawingLogic.drawBackgroundImage(0, 0);
-            drawingLogic.drawVerticesGraphics(graph);
-            drawingLogic.drawEdgesAndVerticesTextOnCanvas(graph);
+            drawingLogic.draw.drawBackgroundImage(0, 0);
+            drawingLogic.draw.drawVerticesGraphics(graph);
+            drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
     })
 
