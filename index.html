@@ -11,6 +11,10 @@
             border: 2px solid black;
         }
 
+        .layer {
+            border: 1px solid #000000;
+        }
+
         canvas {
             position: absolute;
         }
@@ -62,9 +66,9 @@
 <div id="stage">
     <!--game-layer contains roads between vertices and text for now-->
     <!--TODO: rebase vertices text to vertices layer if debugging is finished-->
-    <canvas id="background-layer" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
-    <canvas id="vertices-layer" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
-    <canvas id="game-layer" width="2000" height="1000" style="border:1px solid #000000;"></canvas>
+    <canvas class="layer" id="background-layer" width="2000" height="1000" ></canvas>
+    <canvas class="layer" id="vertices-layer" width="2000" height="1000" ></canvas>
+    <canvas class="layer" id="game-layer" width="2000" height="1000" ></canvas>
 </div>
 
 <div id="buttons">
@@ -74,6 +78,7 @@
     <input type="button" value="next step" id="next_step">
     <input type="button" value="save" id="save">
     <!--input type="button" value="load"  id="load"-->
+    <input type="button" value="map" id="map">
 </div>
 
 
@@ -88,8 +93,10 @@
 <script type="module">
     import {DrawingLogic} from "./src/drawing_logic.js";
     import * as saveAndLoad from "./src/save_and_load_logic.js";
+    import {MapLogic} from "./src/map/map_logic.js";
 
-    let drawingLogic = new DrawingLogic();
+    let background = document.querySelector('#background-layer')
+    let drawingLogic = new DrawingLogic(0, 0, background.width, background.height);
     let graph;
     document.getElementById("start").addEventListener('click', () => {
         graph = drawingLogic.initialVerticesEdgesShow();
@@ -103,7 +110,6 @@
         saveAndLoad.save(graph);
     })
 
-
     let form = document.querySelector('#upload');
     form.addEventListener('submit', saveAndLoad.load);
     console.log("--SaveAndLoadLogic--");
@@ -116,6 +122,13 @@
             drawingLogic.draw.drawVerticesGraphics(graph);
             drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
+    })
+
+    document.getElementById("map").addEventListener('click', () => {
+        let background = document.querySelector('#background-layer');
+        let map = new MapLogic(0, 0, background.width, background.height, graph);
+        let result = map.bfsFromOneVerticeToAnother(10, 11, graph);
+        drawingLogic.draw.lineFromArr(result.route);
     })
 
 

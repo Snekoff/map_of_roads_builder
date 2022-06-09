@@ -1,5 +1,6 @@
 import {Graph} from "./graph/graph.js";
 import {Drawing} from "./drawing.js";
+import {MapLogic} from "./map/map_logic.js";
 
 export class DrawingLogic {
 
@@ -413,9 +414,13 @@ export class DrawingLogic {
 
     edgeObjectsList = [];
 
-    constructor() {
+    limitInPercentsForHypotenuseLengthDeletion = 10;
+
+    constructor(minX, minY, maxX, maxY) {
         this.isInitalized = true;
-        this.draw = new Drawing();
+
+        this.mapLogic = new MapLogic(minX, minY, maxX, maxY);
+        this.draw = new Drawing(minX, minY, maxX, maxY, this.mapLogic.blockSize);
     }
 
     initialVerticesEdgesShow(noRandomGeneration = false) {
@@ -434,6 +439,7 @@ export class DrawingLogic {
             [],
             this.verticeObjectsList,
             this.edgeObjectsList);
+        this.mapLogic.addGraph(this.graph);
 
         console.log('--graph--', this.graph);
         this.draw.drawBackgroundImage(0, 0);
@@ -459,16 +465,13 @@ export class DrawingLogic {
         }
     }
 
-    createEdgeAndCalculateParameters(graph, item, isEitherWay = true) {
+    createEdgeAndCalculateParameters(graph, item, mapLogic, isEitherWay = true) {
         let createEdgeResult1 = 0;
         let createEdgeResult2 = 0;
-        if(item[0] === 2) {
-            console.log("123123123123123123123123123123123123123123123");
-        }
 
         let level = this.binaryCheckWhatLevelOfRoadCouldBeMade(item[0], item[1], graph);
-        createEdgeResult1 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[0], item[1], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, 0, level, 0, true);
-        if (isEitherWay && createEdgeResult1 !== -1) createEdgeResult2 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[1], item[0], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, 0, level, 0, false);
+        createEdgeResult1 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[0], item[1], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, mapLogic, 0, level, 0, true, true);
+        if (isEitherWay && createEdgeResult1 !== -1) createEdgeResult2 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[1], item[0], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, createEdgeResult1.route, createEdgeResult1.length);
         if (createEdgeResult1 === -1 || createEdgeResult2 === -1) return -1;
         let verticesMap = graph.verticesMap;
 
@@ -525,7 +528,7 @@ export class DrawingLogic {
             // TODO: add level calculations
             // TODO: add type
             //if(!graph.edgesMap.has(`from ${item[0]} to ${item[1]}`) && !graph.edgesMap.has(`from ${item[1]} to ${item[0]}`)) {
-            outerThis.createEdgeAndCalculateParameters(graph, item);
+            outerThis.createEdgeAndCalculateParameters(graph, item, outerThis.mapLogic);
             //}
         });
 
@@ -533,15 +536,18 @@ export class DrawingLogic {
         graph.applyReachChangeForAllVertices();
         graph.setIncomeChangeForAllVertices();
         graph.applyIncomeChangeForAllVertices();
+
+        this.lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph);
+        this.findLongEdgesAndPlaceCampsOnThem(graph);
         if(graph.doCitiesLayerNeedARefresh) {
             graph.doCitiesLayerNeedARefresh = false;
             this.draw.refresh("vertices-layer");
             this.draw.drawVerticesGraphics(graph);
         }
 
-        this.lookForUnnecessaryEdgesDeleteThemAndAddSubstitutionEdge(graph);
-
         this.draw.drawEdgesAndVerticesTextOnCanvas(graph);
+        console.log('this.mapLogic.coordsGridArr', this.mapLogic.coordsGridArr);
+        console.log('this.mapLogic.coordsGridArr[80][44]', this.mapLogic.coordsGridArr[80][44]);
         return graph;
     }
 
@@ -599,17 +605,21 @@ export class DrawingLogic {
             outerBreak = true;
         }
 
+
         for (let i = 0; i < adjArr.length && !outerBreak; i++) {
             for (let j = i + 1; j < adjArr.length; j++) {
                 if (keyForMap === adjArr[i] || keyForMap === adjArr[j] || adjArr[i] === adjArr[j]) {
-
+                    continue;
                 }
                 let arr = this.countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, keyForMap, adjArr[i], adjArr[j]);
                 let doEdgeExistsArr = this.checkDoEdgeExistsArr(graph, keyForMap, adjArr[i], adjArr[j])
                 let indxAndSum = this.findMaxDistanceFromArrAndReturnItsIndexAndSumOfCathetuses(arr);
 
+
                 if (!doEdgeExistsArr[indxAndSum[0]]) continue; // to avoid situation of not existing hypotenuse
-                let tmpDebugResult = this.checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], [keyForMap, adjArr[i], adjArr[j]], indxAndSum[0]);
+                let arrOfIds = [keyForMap, adjArr[i], adjArr[j]];
+
+                let tmpDebugResult = this.checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, arr[indxAndSum[0]], indxAndSum[1], arrOfIds, indxAndSum[0], this.limitInPercentsForHypotenuseLengthDeletion);
                 if (tmpDebugResult === 0) {
                     depthIndex[0] += 1;
                     this.reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, keyForMap, depthIndex);
@@ -626,10 +636,12 @@ export class DrawingLogic {
                 newKey = tmpArr[key];
             }
         }
-        if (newKey) {
+
+        if (newKey || newKey === 0) {
             depthIndex[0] += 1;
             return this.reassembleEdgesInTriangleIfNeeded(graph, finishedVerticesArr, newKey, depthIndex);
         }
+        return 0;
     }
 
     countDistancesBetweenThreeVerticesAndReturnThemInArr(graph, verticeAName, verticeBName, verticeCName) {
@@ -639,11 +651,11 @@ export class DrawingLogic {
         return [AB, AC, BC];
     }
 
-    checkDoEdgeExistsArr(graph, verticeAName, verticeBName, verticeCName) {
+    checkDoEdgeExistsArr(graph, verticeAId, verticeBId, verticeCId) {
         let arr = [false, false, false];
-        if (graph.edgesMap.has(`from ${verticeAName} to ${verticeBName}`)) arr[0] = true;
-        if (graph.edgesMap.has(`from ${verticeAName} to ${verticeCName}`)) arr[1] = true;
-        if (graph.edgesMap.has(`from ${verticeBName} to ${verticeCName}`)) arr[2] = true;
+        if (graph.edgesMap.has(`from ${verticeAId} to ${verticeBId}`)) arr[0] = true;
+        if (graph.edgesMap.has(`from ${verticeAId} to ${verticeCId}`)) arr[1] = true;
+        if (graph.edgesMap.has(`from ${verticeBId} to ${verticeCId}`)) arr[2] = true;
         return arr;
     }
 
@@ -658,44 +670,44 @@ export class DrawingLogic {
         return [indexOfMax, sumOfCathetuses];
     }
 
-    checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, hypotenuse, sumOfCathetuses, arrOfNamesOfVertices, indxOfHypotenuse, limitInPercents = 10) {
+    checkIfDifferenceBeyondLimitAndDoReassembleVerticesIfNeeded(graph, hypotenuse, sumOfCathetuses, arrOfIdsOfVertices, indxOfHypotenuse, limitInPercents) {
         if (limitInPercents < 0) limitInPercents = 0;
         if (limitInPercents > 100) limitInPercents = 100;
         if (hypotenuse < sumOfCathetuses * (100 - limitInPercents) / 100) return -1;
 
-        let edgesNamesArr = [`from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[1]}`, `from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[2]}`, `from ${arrOfNamesOfVertices[1]} to ${arrOfNamesOfVertices[2]}`];
-        let edge = graph.edgesMap.get(edgesNamesArr[indxOfHypotenuse]);
+        let edgesIdsArr = [`from ${arrOfIdsOfVertices[0]} to ${arrOfIdsOfVertices[1]}`, `from ${arrOfIdsOfVertices[0]} to ${arrOfIdsOfVertices[2]}`, `from ${arrOfIdsOfVertices[1]} to ${arrOfIdsOfVertices[2]}`];
+        let edge = graph.edgesMap.get(edgesIdsArr[indxOfHypotenuse]);
 
-        let tmpDebugResult = this.addIfOneCathetusIsAbsent(graph, arrOfNamesOfVertices, edge.level);
+        let tmpDebugResult = this.addIfOneCathetusIsAbsent(graph, arrOfIdsOfVertices, this.mapLogic, edge.level);
 
         if (tmpDebugResult >= -1) tmpDebugResult = this.deleteUnnecessaryHypotenuse(graph, edge.vertices);
         return tmpDebugResult;
     }
 
-    addIfOneCathetusIsAbsent(graph, arrOfNamesOfVertices, level = 0) {
-        //console.log("vertices in cathetus add", arrOfNamesOfVertices);
+    addIfOneCathetusIsAbsent(graph, arrOfIdsOfVertices, mapLogic, level = 0) {
+        //console.log("vertices in cathetus add", arrOfIdsOfVertices);
         let id1, id2;
-        if (!graph.edgesMap.has(`from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[1]}`)) {
-            id1 = arrOfNamesOfVertices[0];
-            id2 = arrOfNamesOfVertices[1];
+        if (!graph.edgesMap.has(`from ${arrOfIdsOfVertices[0]} to ${arrOfIdsOfVertices[1]}`)) {
+            id1 = arrOfIdsOfVertices[0];
+            id2 = arrOfIdsOfVertices[1];
         }
-        if (!graph.edgesMap.has(`from ${arrOfNamesOfVertices[0]} to ${arrOfNamesOfVertices[2]}`)) {
-            id1 = arrOfNamesOfVertices[0];
-            id2 = arrOfNamesOfVertices[2];
+        if (!graph.edgesMap.has(`from ${arrOfIdsOfVertices[0]} to ${arrOfIdsOfVertices[2]}`)) {
+            id1 = arrOfIdsOfVertices[0];
+            id2 = arrOfIdsOfVertices[2];
         }
-        if (!graph.edgesMap.has(`from ${arrOfNamesOfVertices[1]} to ${arrOfNamesOfVertices[2]}`)) {
-            id1 = arrOfNamesOfVertices[1];
-            id2 = arrOfNamesOfVertices[2];
+        if (!graph.edgesMap.has(`from ${arrOfIdsOfVertices[1]} to ${arrOfIdsOfVertices[2]}`)) {
+            id1 = arrOfIdsOfVertices[1];
+            id2 = arrOfIdsOfVertices[2];
         }
         if (id1 && id2) {
-            graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id1, id2, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, 0, level, 0, false);
-            graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id2, id1, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, 0, level, 0, false);
+            let result = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id1, id2, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, mapLogic, 0, level, 0, false);
+            graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id2, id1, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge++, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, result.route, result.length);
             return 0;
         }
         return -1;
     }
 
-    deleteUnnecessaryHypotenuse(graph, verticesNames) {
+    deleteUnnecessaryHypotenuse(graph, verticesId) {
         // find edges in Map
         // make it really long and hide from visualization
         // to avoid making it again on next step
@@ -703,51 +715,113 @@ export class DrawingLogic {
         // find in AdjacentMap arr
         // delete from arr
         // replace arr
-        //console.log("vertices in deleteUnnecessaryHypotenuse", verticesNames);
+        //console.log("vertices in deleteUnnecessaryHypotenuse", verticesId);
         let result = 0;
-        let key1 = `from ${verticesNames[0]} to ${verticesNames[1]}`;
-        let key2 = `from ${verticesNames[1]} to ${verticesNames[0]}`;
+        let key1 = `from ${verticesId[0]} to ${verticesId[1]}`;
+        let key2 = `from ${verticesId[1]} to ${verticesId[0]}`;
         if (!graph.edgesMap.has(key1) && !graph.edgesMap.has(key2)) return -1;
-        if (!graph.edgesMap.get(key1).isForVisualisation || !graph.edgesMap.get(key2).isForVisualisation) return -1;
-        if (graph.edgesMap.has(key1)) {
+        if (!graph.edgesMap.get(key1).isForVisualisation && !graph.edgesMap.get(key2).isForVisualisation) return -1;
+        if (graph.edgesMap.has(key1) && graph.edgesMap.get(key1).isForVisualisation) {
             let edge = graph.edgesMap.get(key1);
             edge.isForVisualisation = false;
             edge.length *= 5;
-            edge.level = graph.epoch.getPriceForRoad().length - 1;
+            //edge.level = graph.epoch.getPriceForRoad().length - 1;
             graph.edgesMap.set(key1, edge);
 
-            result += this.deleteVerticeFromAdjacentListOfAnotherVertice(graph, verticesNames[0], verticesNames[1]);
+            result += this.deleteVerticeFromAdjacentListOfAnotherVertice(graph, verticesId[0], verticesId[1]);
         }
-        if (graph.edgesMap.has(key2)) {
+        if (graph.edgesMap.has(key2) && graph.edgesMap.get(key2).isForVisualisation) {
             let edge = graph.edgesMap.get(key2);
             edge.isForVisualisation = false;
             edge.length *= 5;
-            edge.level = graph.epoch.getPriceForRoad().length - 1;
+            //edge.level = graph.epoch.getPriceForRoad().length - 1;
             graph.edgesMap.set(key2, edge);
 
-            result += this.deleteVerticeFromAdjacentListOfAnotherVertice(graph, verticesNames[1], verticesNames[0]);
+            result += this.deleteVerticeFromAdjacentListOfAnotherVertice(graph, verticesId[1], verticesId[0]);
         }
         return result;
     }
 
-    deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertice1, verticeToDelete) {
-        if (!graph.adjacentMap.has(vertice1)) return -1;
-        let adjacentArr = graph.adjacentMap.get(vertice1);
+    deleteVerticeFromAdjacentListOfAnotherVertice(graph, vertice1Id, verticeToDeleteId) {
+        if (!graph.adjacentMap.has(vertice1Id)) return -1;
+        let adjacentArr = graph.adjacentMap.get(vertice1Id);
         // console.log("-------------deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
-        // console.log("vertice1");
-        // console.log(vertice1);
-        // console.log("verticeToDelete");
-        // console.log(verticeToDelete);
-        // console.log("graph.adjacentMap.get(vertice1)");
-        // console.log(graph.adjacentMap.get(vertice1));
+        // console.log("vertice1Id");
+        // console.log(vertice1Id);
+        // console.log("verticeToDeleteId");
+        // console.log(verticeToDeleteId);
+        // console.log("graph.adjacentMap.get(vertice1Id)");
+        // console.log(graph.adjacentMap.get(vertice1Id));
         // console.log("---------END deleteVerticeFromAdjacentListOfAnotherVertice-----------------");
 
-        let indx = adjacentArr.indexOf(verticeToDelete);
+        let indx = adjacentArr.indexOf(verticeToDeleteId);
         if (indx === -1) return -1;
 
         adjacentArr.splice(indx, 1);
-        graph.adjacentMap.set(vertice1, adjacentArr);
+        graph.adjacentMap.set(vertice1Id, adjacentArr);
         return 0;
+    }
+
+    findLongEdgesAndPlaceCampsOnThem(graph) {
+        let edgesNum = graph.edgesMap.size;
+        let verticesNum = graph.verticesMap.size;
+        let maxEdgesNum = verticesNum * (verticesNum - 1);
+        // console.log("edgesNum", edgesNum);
+        // console.log("maxEdgesNum", maxEdgesNum);
+        // console.log("edgesNum < maxEdgesNum * 0.8", edgesNum < maxEdgesNum * 0.8);
+        if(edgesNum < maxEdgesNum * 0.8) return -1;
+
+        for(let vertice of graph.verticesMap.values()) {
+            let chk = this.checkIfEnoughMoneyToBuildACamp(vertice, graph.epoch);
+            if(chk) {
+
+                let maxCamps = this.findHowManyCampsCouldBeMade(vertice, graph.epoch);
+                let arr = this.findAndReturnArrOfTooLongRoads(vertice, graph);
+                if(arr.length > 0) {
+                    for(let i = 0; i < arr.length && i < maxCamps; i++) {
+                        graph.createVerticesFromObjects([{x: arr[i][0], y: arr[i][1], type: 3, name: graph.nameForNextVertice++, reach: vertice.reach / 1000, richness: 10 }], graph.verticesMap, graph.idForNextVertice);
+                        vertice.changeRichness(-1 * graph.epoch.getPriceForCamp());
+                        graph.doCitiesLayerNeedARefresh = true;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    checkIfEnoughMoneyToBuildACamp(vertice, epoch) {
+        if(vertice.type !== 0 && vertice.type !== 2) return false;
+        if(vertice.richness < epoch.getPriceForCamp()) return false;
+        return  true;
+    }
+
+    findHowManyCampsCouldBeMade(vertice, epoch) {
+        return Math.round(vertice.richness / epoch.getPriceForCamp());
+    }
+
+    findAndReturnArrOfTooLongRoads(vertice, graph) {
+        let adj = graph.adjacentMap.get(vertice.id);
+        let arr = [];
+        let outerThis = this;
+        //console.log("adj", adj);
+        adj.forEach(function (item) {
+            let key = `from ${vertice.id} to ${item}`;
+            // console.log("item", item);
+            // console.log("key", key);
+            if(graph.edgesMap.has(key)) {
+                let edge = graph.edgesMap.get(key);
+                if(edge.isForVisualisation && edge.length > graph.epoch.getMaxComfortableRoadLength()) {
+                    let vertice2 = graph.verticesMap.get(item)
+                    let middlePointOfBfsRoute = Math.round((edge.route.length - 1) / 2);
+                    let x = edge.route[middlePointOfBfsRoute][0] * outerThis.mapLogic.blockSize + outerThis.mapLogic.minX;
+                    let y = edge.route[middlePointOfBfsRoute][0] * outerThis.mapLogic.blockSize + outerThis.mapLogic.minY;
+                    /*let x = Math.floor((vertice.x - vertice2.x) / 2);
+                    let y = Math.floor((vertice.y - vertice2.y) / 2);*/
+                    arr.push([x, y]);
+                }
+            }
+        })
+        return arr;
     }
 
 }

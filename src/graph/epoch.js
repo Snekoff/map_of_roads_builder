@@ -2,9 +2,11 @@ export class Epoch {
     priceForRoadLevel = [[0, 3, 5, 7, 10], [0, 5, 25]];
     bandwidthForRoadLevel = [[1, 3, 5, 7, 10], [1, 2, 10]];
     costToLevelUpByType = [
-        [[1000], [100], [500], [50], [1000]],
+        [[1000], [100], [500], [5], [1000]],
         [[10000], [1000], [5000], [500], [10000]]
     ]
+    priceForCamp = [[5], [750]];
+    maxComfortableRoadLengthWithoutPlacesToStop = [[500], [750]];
 
     constructor(epoch_index) {
         this.epoch_index = epoch_index;
@@ -23,8 +25,16 @@ export class Epoch {
         return this.comfortableBandwidth;
     }
 
+    getPriceForCamp() {
+        return this.priceForCamp[this.epoch_index];
+    }
+
     getCostToLevelUpByType() {
         return this.costToLevelUpByType[this.epoch_index];
+    }
+
+    getMaxComfortableRoadLength() {
+        return this.maxComfortableRoadLengthWithoutPlacesToStop[this.epoch_index];
     }
 
     save() {

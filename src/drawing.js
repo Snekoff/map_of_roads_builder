@@ -1,7 +1,12 @@
 export class Drawing {
 
-    constructor() {
+    constructor(minX, minY, maxX, maxY, blockSize) {
         this.isInitalized = true;
+        this.minX = minX;
+        this.minY = minY;
+        this.maxX = maxX;
+        this.maxY = maxY;
+        this.blockSize = blockSize;
     }
 
     circle(x = 0, y = 0, indexForColor = 0) {
@@ -40,6 +45,30 @@ export class Drawing {
 
     }
 
+    lineFromArr(arr, isForVisualisation = true, width = 3) {
+
+        //TODO: curve https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/bezierCurveTo
+
+        if (!isForVisualisation) return 0;
+        let canvas = document.getElementById("game-layer");
+        let ctx = canvas.getContext("2d");
+        let xAdd = Math.min(this.minX, this.maxX);
+        let yAdd = Math.min(this.minY, this.maxY);
+
+        ctx.beginPath();
+        ctx.moveTo(arr[0][0] * this.blockSize + xAdd, arr[0][1] * this.blockSize + yAdd);
+        for(let i = 1; i < arr.length; i++) {
+            ctx.lineTo(arr[i][0] * this.blockSize + xAdd, arr[i][1] * this.blockSize + yAdd);
+        }
+
+        ctx.lineWidth = width + 1;
+        ctx.strokeStyle = "black";
+        //if(!isForVisualisation) ctx.strokeStyle = "orange";
+
+        ctx.stroke();
+
+    }
+
     drawBackgroundImage(x, y, src = "./images/345d9724898967.5633bed73d62e.jpg") {
         this.refresh("game-layer");
         this.refresh("background-layer");
@@ -51,11 +80,11 @@ export class Drawing {
         let background = new Image();
         background.src = src;
         let width = 4000;
-        let height = 2000;
+        let height = 1000;
 
         // Make sure the image is loaded first otherwise nothing will draw.
         background.onload = function () {
-            ctx.drawImage(background, 500, 250, width / 3, height / 2, 0, 0, width, height);
+            ctx.drawImage(background, 500, 250, width / 3, height / 2, 0, 0, width, height); // поделить на 3 и на 2
         }
     }
 
@@ -100,11 +129,18 @@ export class Drawing {
 
         //setTimeout(() => {
         for (let edg of edges) {
-            let verticeMap = graph.verticesMap;
-            let id1 = edg.vertices[0], id2 = edg.vertices[1];
-            let item1 = verticeMap.get(id1);
-            let item2 = verticeMap.get(id2);
-            this.line(item1.x, item1.y, item2.x, item2.y, edg.isForVisualisation, edg.level);
+            // console.log("edg", edg);
+            // console.log("edg.route", edg.route);
+
+            if(edg.route.length > 0) {
+                this.lineFromArr(edg.route, edg.isForVisualisation, edg.level);
+            } else {
+                let verticeMap = graph.verticesMap;
+                let id1 = edg.vertices[0], id2 = edg.vertices[1];
+                let item1 = verticeMap.get(id1);
+                let item2 = verticeMap.get(id2);
+                this.line(item1.x, item1.y, item2.x, item2.y, edg.isForVisualisation, edg.level);
+            }
         }
         for (let vert of vertices) {
 
@@ -121,7 +157,7 @@ export class Drawing {
         ctx.fillStyle = "Blue";
         ctx.strokeStyle = "White";
         ctx.lineWidth = 3;
-        let text = `${vertice.name} level:${Math.round(vertice.level)} Rich:${vertice.richness.toFixed(1)}`;
+        let text = `${vertice.name}(${vertice.id}) Rich:${vertice.richness.toFixed(1)}`;
         ctx.strokeText(text, vertice.x - 20, vertice.y + 5);
         ctx.fillText(text, vertice.x - 20, vertice.y + 5);
     }

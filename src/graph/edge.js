@@ -1,6 +1,6 @@
 export class Edge {
 
-    constructor({vertices, name, length, id, protectionAmount, level, type = 0, isForVisualisation = true, bandwidth = 1, reach = 1}) {
+    constructor({vertices, name, length, id, protectionAmount, level, route = [], type = 0, isForVisualisation = true, bandwidth = 1, reach = 1}) {
         this.vertices = vertices; // ['name1', 'name2']
         this.name = name;
         this.id = id;
@@ -12,6 +12,7 @@ export class Edge {
         this.isForVisualisation = isForVisualisation;
         this.bandwidth = bandwidth;
         this.reach = Math.round(reach * 100 ) / 100;
+        this.route = route;
     }
 
     save() {

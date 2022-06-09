@@ -1,6 +1,7 @@
 import {Vertice} from "./vertice.js";
 import {Edge} from "./edge.js";
 import {Epoch} from "./epoch.js";
+import {MapLogic} from "../map/map_logic.js";
 
 
 export class Graph {
@@ -24,7 +25,7 @@ export class Graph {
         this.edgesList = edgesList;
         this.edgesNames = edgesNames;
         this.nameForNextVertice = 0;
-        this.idForNextVertice = 0;
+        this.idForNextVertice = [0];
         this.nameForNextEdge = 0;
         this.idForNextEdge = 0;
         this.verticesMap = new Map();
@@ -34,7 +35,7 @@ export class Graph {
         this.epoch = new Epoch(epoch_index);
         this.doCitiesLayerNeedARefresh = false;
 
-        this.nameForNextVertice = this.checkVerticesListAndCreateVertices(
+        this.idForNextVertice[0] = this.checkVerticesListAndCreateVertices(
             this.verticesList,
             this.verticesMap,
             this.verticesNames,
@@ -47,7 +48,7 @@ export class Graph {
         //     this.verticesMap,
         //     this.adjacentMap);
 
-        this.createVerticesFromObjects(this.verticeObjectsList, this.verticesMap);
+        this.createVerticesFromObjects(this.verticeObjectsList, this.verticesMap, this.idForNextVertice);
     }
 
     checkVerticesListAndCreateVertices(verticesList, verticesMap, verticesNames, name) {
@@ -55,19 +56,20 @@ export class Graph {
         let grph = this;
         verticesList.forEach(function(item, index) {
             let tmpName = verticesNames[index] || verticesNames[index] === 0 ? verticesNames[index] : name++;
-            let vrtce = grph.createVertice({x: Math.round(item[0]), y: Math.round(item[1]), name: tmpName, id: this.idForNextVertice++, type: Math.round(item[2])});
-            verticesMap.set(tmpName, vrtce);
+            let vrtce = grph.createVertice({x: Math.round(item[0]), y: Math.round(item[1]), name: tmpName, id: grph.idForNextVertice[0]++, type: Math.round(item[2])});
+            verticesMap.set(vrtce.id, vrtce);
         })
-        return name;
+        return grph.idForNextVertice[0];
     }
 
-    createVerticesFromObjects(verticeObjectsList, verticesMap) {
+    createVerticesFromObjects(verticeObjectsList, verticesMap, idForNextVertice) {
         let grph = this;
         verticeObjectsList.forEach(function(item) {
-            while(!item.name || verticesMap.has(item.name)) {
-                item.name = item.name === 0 ? item.name : this.nameForNextEdge++;
-            }
-            item.id = grph.idForNextVertice++;
+            // while(!item.name || verticesMap.has(item.id)) {
+            //     item.name = item.name === 0 ? item.name : this.nameForNextEdge++;
+            // }
+            item.id = item.id ? item.id : idForNextVertice[0]++;
+            item.name = item.name || item.name === 0 ? item.name : item.id;
             let vertice = grph.createVertice(item);
             verticesMap.set(item.id, vertice);
         })
@@ -78,12 +80,12 @@ export class Graph {
         return new Vertice(params);
     }
 
-    createEdge({vertices, name, length, protectionAmount = 0, level = 0, type = 0, isForVisualisation = true }) {
+    createEdge({vertices, name, length, protectionAmount = 0, level = 0, route = [], type = 0, isForVisualisation = true}) {
         let vrtc1 = this.verticesMap.get(vertices[0]);
         let vrtc2 = this.verticesMap.get(vertices[1]);
         let reach = Math.min(vrtc1.reach, vrtc2.reach);
         let id = this.idForNextEdge++;
-        return new Edge({vertices, name, length, id, protectionAmount, level, type, isForVisualisation, bandwidth:this.epoch.getBandwidthForRoad()[level], reach});
+        return new Edge({vertices, name, length, id, protectionAmount, level, route, type, isForVisualisation, bandwidth:this.epoch.getBandwidthForRoad()[level], reach});
     }
 
     fillMapWithAdjacentVertices(adjacentMap, verticeId, addedAdjacentList) {
@@ -102,12 +104,22 @@ export class Graph {
         edgesMap,
         nameForNextEdge,
         verticesMap,
+        mapLogic,
         protectionAmount = 0,
         level = 0,
         type = 0,
         isCheckNeeded= true,
-        isForVisualisation = true) {
-        let length = this.countDistanceBetweenVertices(vertice1Id, vertice2Id, verticesMap);
+        isForVisualisation = true,
+        isBfsNeeded = true,
+        routeReversed = [],
+        lengthAlreadyBuilt = 0
+        ) {
+        this.mapLogic = mapLogic;
+        //let length = this.countDistanceBetweenVertices(vertice1Id, vertice2Id, verticesMap);
+        let bfsResult
+        if (isBfsNeeded) bfsResult = this.mapLogic.bfsFromOneVerticeToAnother(vertice1Id, vertice2Id, this);
+        let length = isBfsNeeded ? bfsResult.price : lengthAlreadyBuilt;
+        let route = isBfsNeeded ? bfsResult.route : routeReversed;
         let checkResult = 0;
 
         let {prevLevel, isEdgeThere} = this.getCurrentLevelAndIsEdgeThere(edgesMap, vertice1Id, vertice2Id);
@@ -120,17 +132,23 @@ export class Graph {
             this.upgradeEdgeLevelAndReach(edgesMap, vertice1Id, vertice2Id, level);
         }
         else {
-            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], name: nameForNextEdge, length, protectionAmount, level, type, isForVisualisation}));
+            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], name: nameForNextEdge, length, protectionAmount, level, route, type, isForVisualisation}));
             this.fillMapWithAdjacentVertices(adjacentMap, vertice1Id, [vertice2Id]);
+            this.verticeAddLengthToAnotherVertice(vertice1Id, vertice2Id, length);
+            if(isBfsNeeded) this.mapLogic.addRoadLevelToArrOfCells(route, level);
         }
-        return 0;
+        return {length, route};
     }
 
 
     getCurrentLevelAndIsEdgeThere(edgesMap, vertice1Id, vertice2Id) {
         let prevLevel;
         let isEdgeThere = edgesMap.has(`from ${vertice1Id} to ${vertice2Id}`);
-        if (isEdgeThere) prevLevel = edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`).level;
+        if (isEdgeThere) {
+            let edge = edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`);
+            prevLevel = edge.level;
+            isEdgeThere = edge.isForVisualisation;
+        }
         return {prevLevel, isEdgeThere};
     }
 
@@ -182,16 +200,6 @@ export class Graph {
         let reach2 = vertice2.reach;
         let checkResult = -1;
         let mul1 = 0.0, mul2 = 0.0;
-
-        if(type1 === 4 || type2 === 4) {
-            console.log('------------------------0000000000000000000000000000000000000');
-            console.log('vertice1Id',vertice1Id);
-            console.log('vertice2Id',vertice2Id);
-            console.log('vertice1.name',vertice1.name);
-            console.log('vertice2.name',vertice2.name);
-            console.log('length',length);
-
-        }
 
         if (type1 === 0 || type1 === 2) {
             if (type2 === 0 && reach1 + reach2 >= length && richness1 + richness2 >= priceForRoadLevel) {
@@ -346,7 +354,7 @@ export class Graph {
     setReachIncome(vertice, epoch, valueFromRoad, roadLevel) {
         let base = 1;
         //let adjMapLngth = this.adjacentMap.get(vertice.id).length;
-        let roadModifier = 1/1000 * epoch.getBandwidthForRoad()[roadLevel] / epoch.getComfortableBandwidth();
+        let roadModifier = 1/10000 * epoch.getBandwidthForRoad()[roadLevel] / epoch.getComfortableBandwidth();
         let roadAddedReach = valueFromRoad * roadModifier;
 
         vertice.setReachIncome(base + roadAddedReach/*adjMapLngth * roadModifier*/, true);
@@ -404,6 +412,11 @@ export class Graph {
         }
     }
 
+    verticeAddLengthToAnotherVertice(vertice1Id, vertice2Id, length) {
+        let vert = this.verticesMap.get(vertice1Id);
+        vert.adjacentVerticesAndRoadLengthToThem.set(vertice2Id, length);
+    }
+
 
     save() {
         let save_obj = {};
@@ -423,7 +436,7 @@ export class Graph {
                 }
             } else if (this[key] instanceof Epoch) {
                 save_obj[key] = this[key].save();
-            }
+            } else if (key === 'verticesList') {/*ignore*/}
             else save_obj[key] = this[key];
         }
         console.log("save_obj", save_obj);

@@ -47,6 +47,7 @@ export class Vertice {
         // 2 - fort
         // 3 - camp
         // 4 - criminal camp
+        this.typeNames = ["city", "village", "fort", "camp", "criminal camp"];
         this.type = type;
         this.richness = Math.round(richness * 100) / 100;
         this.prosperity = Math.round(prosperity * 100) / 100;
@@ -63,6 +64,8 @@ export class Vertice {
         //this.incomeToAddInNextTurn *= this.incomeToAddInNextTurnMulArr[this.type];
         this.level = level;
         //this.isCapital = false;
+
+        this.adjacentVerticesAndRoadLengthToThem = new Map();
     }
 
     changeType(newType) {
@@ -71,13 +74,14 @@ export class Vertice {
     }
 
     changeName(type) {
-        if (type !== 0) return -1;
-        let newName = "new city";
+        if (type !== 0 && type !== 1) return -1;
+        let newName = "new " + this.typeNames[type];
         let tmp = this.name.lastIndexOf(" ");
+        if(tmp < 0) tmp = this.name.length - 3;
         tmp = this.name.slice(tmp);
         this.name = newName + tmp;
-        console.log('------------------------------------------------');
-        console.log('name', this.name);
+        // console.log('------------------------------------------------');
+        // console.log('name', this.name);
     }
 
     checkIfEnoughRichnessToLevelUp(epoch) {
@@ -91,9 +95,14 @@ export class Vertice {
         // village and camp could level up in city
         this.changeRichness(-1 * epoch.getCostToLevelUpByType()[this.type])
         this.level++;
-        if (this.level > 4 && (this.type === 1 || this.type === 3)) {
+        if (this.level > 4 && this.type === 1 ) {
             this.level = 0;
             this.changeType(0);
+            return 1;
+        }
+        if (this.level > 4 && this.type === 3) {
+            this.level = 0;
+            this.changeType(1);
             return 1;
         }
         return this.level;
