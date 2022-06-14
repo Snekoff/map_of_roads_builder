@@ -42,7 +42,6 @@ export class MapCell {
     }
 
     setCurrentMultiplier(terrainTypes, multipliersMap, currentMultiplier = 1) {
-        console.log("setCurrentMultiplier terrainTypes", terrainTypes);
         currentMultiplier = 1;
         for(let type of terrainTypes.entries()) {
             if(type[1] !== +type[1]) break;
@@ -54,15 +53,11 @@ export class MapCell {
     }
 
     addTerrainType(value) {
-        console.log("addTerrainType value", value);
+
         if(this.terrainTypes.has(value.type)) {
-            console.log("this.terrainTypes.get(value.type)", this.terrainTypes.get(value.type));
             let maxLvl = this.multipliersMap.get(value.type).length - 1;
             let current = this.terrainTypes.get(value.type);
-            console.log("maxLvl", maxLvl);
-            console.log("current", current);
-            let newLevel = Math.min(current + 1, maxLvl);
-            console.log("newLevel", newLevel);
+            let newLevel = Math.min(value.level, maxLvl);
             this.terrainTypes.set(value.type, newLevel);
             this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, this.multipliersMap, this.currentMultiplier);
             return 0;

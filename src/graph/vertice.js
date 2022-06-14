@@ -66,6 +66,8 @@ export class Vertice {
         //this.isCapital = false;
 
         this.adjacentVerticesAndRoadLengthToThem = new Map();
+
+        this.cumulativeCosts = 0;
     }
 
     changeType(newType) {
@@ -112,6 +114,17 @@ export class Vertice {
         if (!richnessToAdd && typeof richnessToAdd !== "number") return NaN;
         // todo add loans system
         this.richness += Math.round(richnessToAdd * 100) / 100;
+    }
+
+    cumulateCosts(valueToAdd) {
+        this.cumulativeCosts += valueToAdd;
+    }
+
+    applyCumulativeCosts(wasRoadBuilt = true) {
+        if (wasRoadBuilt) {
+            this.changeRichness(this.cumulativeCosts);
+        }
+        this.cumulativeCosts = 0;
     }
 
     changeProsperity(newProsperity) {

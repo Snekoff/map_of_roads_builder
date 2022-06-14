@@ -127,7 +127,7 @@
     document.getElementById("map").addEventListener('click', () => {
         let background = document.querySelector('#background-layer');
         let map = new MapLogic(0, 0, background.width, background.height, graph);
-        let result = map.bfsFromOneVerticeToAnother(10, 11, graph);
+        let result = map.bfsFromOneVerticeToAnother(17, 0, graph);
         drawingLogic.draw.lineFromArr(result.route);
     })
 
