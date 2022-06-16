@@ -62,13 +62,13 @@ export class MapLogic {
 
     checkIfLowerPriceThanInInCell(x, y, priceForTraveling) {
         if (this.coordsGridArr[x][y] === undefined) return true;
-        if (this.coordsGridArr[x][y].price > priceForTraveling) return true;
+        if (this.coordsGridArr[x][y].length > priceForTraveling) return true;
         return false;
     }
 
     writeInCell(x, y, priceForTraveling, from) {
         this.createCell({x, y});
-        this.coordsGridArr[x][y].price = priceForTraveling;
+        this.coordsGridArr[x][y].length = priceForTraveling;
         this.coordsGridArr[x][y].from = from;
     }
 
@@ -129,7 +129,7 @@ export class MapLogic {
     bfsFromOneVerticeToAnother(startingVerticeId = -1, finalVerticeId = -1, graph, currentRound) {
         let hash = this.returnHashedResultIfNotExpired(startingVerticeId, finalVerticeId, currentRound);
         if (hash !== -1) {
-            //console.log("bfsFromOneVerticeToAnother hashed");
+            console.log("bfsFromOneVerticeToAnother hashed", hash);
             return hash;
         }
         if (startingVerticeId === -1) startingVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
@@ -160,7 +160,7 @@ export class MapLogic {
     }
 
     bfsOnVerticesReturnRouteAndLength(startingVertice, finalVertice, graph) {
-        let result = {price: -1, route: []};
+        let result = {length: -1, route: []};
         let visitedArr = [];
         let bfsHeap = [startingVertice.id];
         let temResults = new Map();
@@ -170,7 +170,7 @@ export class MapLogic {
 
         if (temResults.has(finalVertice.id)) {
             let res = temResults.get(finalVertice.id);
-            result.price = res.price;
+            result.length = res.length;
             result.route = this.reverseBuildingRouteOnVertices(startingVertice, finalVertice, temResults)
         }
 
@@ -186,19 +186,19 @@ export class MapLogic {
         let vertice = graph.verticesMap.get(topItem);
         if (visitedArr.indexOf(vertice.id) > 0) return -1;
 
-        let currentSum = temResults.has(vertice.id) ? temResults.get(vertice.id).price : 0;
-        if (temResults.has(finalVertice.id) && currentSum >= temResults.get(finalVertice.id).price) {
+        let currentSum = temResults.has(vertice.id) ? temResults.get(vertice.id).length : 0;
+        if (temResults.has(finalVertice.id) && currentSum >= temResults.get(finalVertice.id).length) {
             return -1;
         }
         for (let entry of vertice.adjacentVerticesAndRoadLengthToThem.entries()) {
             let x = Math.floor(vertice.x / this.blockSize) - this.minX;
             let y = Math.floor(vertice.y / this.blockSize) - this.minY;
 
-            if (temResults.has(entry[0]) && temResults.get(entry[0]).price > entry[1].price + currentSum) {
-                temResults.set(entry[0], {price: currentSum + entry[1].price, from: [x, y]});
+            if (temResults.has(entry[0]) && temResults.get(entry[0]).length > entry[1].length + currentSum) {
+                temResults.set(entry[0], {length: currentSum + entry[1].length, from: [x, y]});
                 bfsHeap.push(entry[0]);
             } else if (!temResults.has(entry[0])) {
-                temResults.set(entry[0], {price: currentSum + entry[1].price, from: [x, y]});
+                temResults.set(entry[0], {length: currentSum + entry[1].length, from: [x, y]});
                 bfsHeap.push(entry[0]);
             }
         }
@@ -206,14 +206,14 @@ export class MapLogic {
     }
 
     bfsOnGridReturnRouteAndLength(startingCell, finalCell, startingVertice, finalVertice, graph) {
-        let result = {price: -1, route: []};
+        let result = {length: -1, route: []};
         let visitedArr = [];
         let bfsHeap = [startingCell];
         let temResults = new Map();
         let stCellKey = startingCell[0] + ' ' + startingCell[1];
         //console.log("stCellKey", stCellKey);
         temResults.set(stCellKey, {
-            price: this.coordsGridArr[startingCell[0]][startingCell[1]].currentMultiplier * this.blockSize,
+            length: this.coordsGridArr[startingCell[0]][startingCell[1]].currentMultiplier * this.blockSize,
             from: null
         });
         while (bfsHeap.length > 0) {
@@ -229,7 +229,7 @@ export class MapLogic {
         let finCellKey = finalCell[0] + ' ' + finalCell[1];
         let edgesToBeMade;
         if (temResults.has(finCellKey)) {
-            result.price = temResults.get(finCellKey).price;
+            result.length = temResults.get(finCellKey).length;
             result.route = this.reverseBuildingRouteOnGrid(startingCell, finalCell, temResults);
             edgesToBeMade = this.edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith(result.route, startingCell, finalCell);
             result.edgesToBeAddedAndRoute = edgesToBeMade;
@@ -251,11 +251,11 @@ export class MapLogic {
     goInVerticeAdjacentListAndFindRouteToFinalVertice(graph, bfsHeap, finalVertice, temResults, finalCell) {
         let vertice = graph.verticesMap.get(this.coordsGridArr[bfsHeap[0][0]][bfsHeap[0][1]].verticeArr[0]);
         let vertResult = this.bfsOnVerticesReturnRouteAndLength(vertice, finalVertice, graph);
-        if (vertResult.price > 0) {
+        if (vertResult.length > 0) {
             let finCellKey = finalCell.x + ' ' + finalCell.y;
-            if (temResults.has(finCellKey) && temResults.get(finCellKey).price <= vertResult.price) {
+            if (temResults.has(finCellKey) && temResults.get(finCellKey).length <= vertResult.length) {
             } else {
-                temResults.get(finCellKey).price = vertResult.price;
+                temResults.get(finCellKey).length = vertResult.length;
                 temResults.get(finCellKey).from = vertResult.from;
             }
         }
@@ -274,8 +274,8 @@ export class MapLogic {
         if (visitedArr.indexOf(topItem) > 0) return -1;
 
         let finCellKey = finalCell[0] + ' ' + finalCell[1];
-        let currentSum = temResults.has(curCellKey) ? temResults.get(curCellKey).price : 0;
-        if (temResults.has(finCellKey) && currentSum >= temResults.get(finCellKey).price) {
+        let currentSum = temResults.has(curCellKey) ? temResults.get(curCellKey).length : 0;
+        if (temResults.has(finCellKey) && currentSum >= temResults.get(finCellKey).length) {
             return -1;
         }
         let directionArr = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
@@ -290,9 +290,9 @@ export class MapLogic {
             let addedDistance = Math.ceil(this.coordsGridArr[x + addX][y + addY].currentMultiplier * this.blockSize * diagonalDistanceMult * 10) / 10;
             let newCellKey = +(x + addX) + ' ' + +(y + addY)
             if (temResults.has(newCellKey)
-                && temResults.get(newCellKey).price <= currentSum + addedDistance) continue;
+                && temResults.get(newCellKey).length <= currentSum + addedDistance) continue;
 
-            temResults.set(newCellKey, {price: currentSum + addedDistance, from: [x, y]});
+            temResults.set(newCellKey, {length: currentSum + addedDistance, from: [x, y]});
             bfsHeap.push([x + addX, y + addY]);
         }
         return 0;
@@ -406,111 +406,91 @@ export class MapLogic {
         // edges: [[verticeId1, verticeId2], [verticeId2, verticeId3]]
         // routes: [[[1, 1], [1, 2], [1, 3]], [[1, 3], [2, 4], [3, 5]]]
         // length: [length1, length2]
-        let edgesToBeAddedAndRoute = {edges: [[]], routes: [[]], length: []};
+        let edgesToBeAddedAndRoute = {edges: [[]], routes: [[]], length: [0]};
         // adj: [[verticeId1, verticeId2], [verticeId2, verticeId1], [verticeId2, verticeId3]]
         //let adjacentListsOfVertices = [];
 
-        let length = edgesToBeAddedAndRoute.routes[0].length;
+        let length = edgesToBeAddedAndRoute.routes.length;
         let verticesIdList = []
 
+        //console.log("edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith route", route);
         for (let i = 0; i < route.length; i++) {
+            length = edgesToBeAddedAndRoute.routes.length;
             let curCell = this.coordsGridArr[route[i][0]][route[i][1]];
             if (curCell === undefined) continue;
             if (curCell.verticeArr.length === 0) {
-                length = edgesToBeAddedAndRoute.routes[edgesToBeAddedAndRoute.routes.length - 1].length;
-                // if it is regular cell without vertice then remember route for this new edge
+
+                // if it is cell without vertice then remember route for this new edge
                 // there must be i > 0
-                if (length === 0) {
-                    length = edgesToBeAddedAndRoute.routes.length;
-                    // if route is empty start new
-                    // start is last visited vertice
-                    this.edgesToBeMadeAddRouteStartingVerticeAndRouteAndPrice(curCell, verticesIdList, edgesToBeAddedAndRoute, length, route, i);
-                } else {
-                    length = edgesToBeAddedAndRoute.routes.length;
-                    // other ways add cell to existing route
-                    edgesToBeAddedAndRoute.routes[length - 1].push(route[i]);
-                    let cell = this.coordsGridArr[route[i][0]][route[i][1]]
-                    edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
-                }
+                // add cell to existing route
+                this.edgesToBeMadeAddRouteStartingVerticeAndRouteAndPrice(curCell, verticesIdList, edgesToBeAddedAndRoute, length, route, i);
                 continue;
             }
             // if there are at least one vertice in cell then find first that is in this cell and not in list of vertices already
             let k = 0;
             while (verticesIdList.indexOf(curCell.verticeArr[k]) > 0) {
+                k++;
                 if (k > curCell.verticeArr.length - 1) {
                     k = -1;
                     break;
                 }
-                k++;
             }
             // if there is one add it to vertices list
             // end route if there is one
-            // start new
+            // or start new
             if (k > -1) {
                 verticesIdList.push(curCell.verticeArr[k]);
-                this.updateEdgesAndRoutes(edgesToBeAddedAndRoute, length, route, i, verticesIdList/*, adjacentListsOfVertices*/);
+                this.updateEdgesAndRoutes(edgesToBeAddedAndRoute, length, route, i, verticesIdList);
             }
             // then are to make pairs of them
         }
-        console.log("edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith");
-        console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
+        // console.log("edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith");
+        // console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
         return edgesToBeAddedAndRoute;
     }
 
     edgesToBeMadeAddRouteStartingVerticeAndRouteAndPrice(curCell, verticesIdList, edgesToBeAddedAndRoute, length, route, i) {
-        console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
-        console.log("length", length);
-        /*let vertice = this.coordsGridArr[route[i - 1][0]][route[i - 1][1]];//curCell.verticeArr[0];
-        if (verticesIdList.length > 0) vertice = verticesIdList[verticesIdList.length - 1];
-        edgesToBeAddedAndRoute.edges[length - 1].push(vertice);
-        edgesToBeAddedAndRoute.routes[length - 1].push(route[i - 1]);*/
+        // console.log("edgesToBeAddedAndRoute.routes", edgesToBeAddedAndRoute.routes);
+        // console.log("length", length);
+        if(length === 0) {
+            console.log("i", i);
+            console.log("route", route);
+            console.log("this.coordsGridArr[route[i][0]][route[i][1]]", this.coordsGridArr[route[i][0]][route[i][1]]);
+        }
+
         edgesToBeAddedAndRoute.routes[length - 1].push(route[i]);
-
-        /*let cell = this.coordsGridArr[route[i - 1][0]][route[i - 1][1]]
-        edgesToBeAddedAndRoute.length.push(cell.currentMultiplier * this.blockSize);*/
-
         let cell = this.coordsGridArr[route[i][0]][route[i][1]]
-        edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
+        edgesToBeAddedAndRoute.length[length - 1] += +cell.currentMultiplier * this.blockSize;
     }
 
     updateEdgesAndRoutes(edgesToBeAddedAndRoute, length, route, i, verticesIdList/*, adjacentListsOfVertices*/) {
         if (length === 0) return 0;
-        console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
-        console.log("length", length);
-        console.log("edgesToBeAddedAndRoute.routes[length - 1]", edgesToBeAddedAndRoute.routes[length - 1]);
+        // console.log("updateEdgesAndRoutes edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
+        // console.log("length", length);
+        // console.log("edgesToBeAddedAndRoute.routes[length - 1]", edgesToBeAddedAndRoute.routes[length - 1]);
 
         // add vertice to route
-        edgesToBeAddedAndRoute.routes[length - 1].push(route[i]);
-        edgesToBeAddedAndRoute.edges[length - 1].push(verticesIdList[verticesIdList.length - 1]);
-        let cell = this.coordsGridArr[route[i][0]][route[i][1]]
-        edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
+        this.addVerticeRouteAndLengthToEdgesToBeAddedAndRoute(edgesToBeAddedAndRoute, length, route, i, verticesIdList);
 
-        // make adjacent list updates queue
-        // adjacentListsOfVertices.push(edgesToBeAddedAndRoute.edges[length - 1][0], edgesToBeAddedAndRoute.edges[length - 1][1]);
-        // adjacentListsOfVertices.push(edgesToBeAddedAndRoute.edges[length - 1][1], edgesToBeAddedAndRoute.edges[length - 1][0]);
-
-
-        // make reversed routes for either way roads
-        /*let route1 = edgesToBeAddedAndRoute.routes[length - 1].reverse();
-        let edge1 = edgesToBeAddedAndRoute.edges[length - 1].reverse();
-        let length1 = edgesToBeAddedAndRoute.length[length - 1];
-        edgesToBeAddedAndRoute.routes.push(route1);
-        edgesToBeAddedAndRoute.edges.push(edge1);
-        edgesToBeAddedAndRoute.length.push(length1);
-        */
-
+        // if there are more than 2 items in route and last item that was pushed is vertice
+        // then route part ends here and new route starts with current vertice
         if (edgesToBeAddedAndRoute.routes[length - 1].length > 1) {
             // start new route
             edgesToBeAddedAndRoute.routes.push([]);
             edgesToBeAddedAndRoute.edges.push([]);
+            edgesToBeAddedAndRoute.length.push(0);
+
+            if(i < route.length - 1) this.addVerticeRouteAndLengthToEdgesToBeAddedAndRoute(edgesToBeAddedAndRoute, length + 1, route, i, verticesIdList);
         }
         return 0;
     }
 
-    /*addVerticeRouteAndLengthToEdgesToBeAddedAndRoute(edgesToBeAddedAndRoute, length, route, i, verticesIdList) {
+    addVerticeRouteAndLengthToEdgesToBeAddedAndRoute(edgesToBeAddedAndRoute, length, route, i, verticesIdList) {
+
         edgesToBeAddedAndRoute.routes[length - 1].push(route[i]);
         edgesToBeAddedAndRoute.edges[length - 1].push(verticesIdList[verticesIdList.length - 1]);
         let cell = this.coordsGridArr[route[i][0]][route[i][1]]
+        if(!edgesToBeAddedAndRoute.length.length < length) edgesToBeAddedAndRoute.length.push(0);
         edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
-    }*/
+    }
 }

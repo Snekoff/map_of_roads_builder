@@ -57,7 +57,7 @@ export class MapCell {
         if(this.terrainTypes.has(value.type)) {
             let maxLvl = this.multipliersMap.get(value.type).length - 1;
             let current = this.terrainTypes.get(value.type);
-            let newLevel = Math.min(value.level, maxLvl);
+            let newLevel = Math.max(Math.min(value.level, maxLvl), +current);
             this.terrainTypes.set(value.type, newLevel);
             this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, this.multipliersMap, this.currentMultiplier);
             return 0;

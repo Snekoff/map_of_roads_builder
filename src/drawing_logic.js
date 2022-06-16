@@ -90,10 +90,10 @@ export class DrawingLogic {
             type: 0,
             richness: 6,
             prosperity: 10,
-            incomeToAddInNextTurn: 100000,
+            incomeToAddInNextTurn: 0,
             numOfWares: 0,
             defencePower: 150,
-            reach: 2500,
+            reach: 150,
             isForVisualisation: true
         }
         , {
@@ -482,7 +482,7 @@ export class DrawingLogic {
 
         let level = this.binaryCheckWhatLevelOfRoadCouldBeMade(item[0], item[1], graph);
         createEdgeResult1 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[0], item[1], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, true, true);
-        if (isEitherWay && createEdgeResult1 !== -1) createEdgeResult2 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[1], item[0], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, createEdgeResult1.route, createEdgeResult1.length, createEdgeResult1.edgesToBeAddedAndRoute);
+        if (isEitherWay && createEdgeResult1 !== -1) createEdgeResult2 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[1], item[0], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, createEdgeResult1.route, createEdgeResult1.length, createEdgeResult1.edgesToBeAddedAndRoute, createEdgeResult1.level);
         if (createEdgeResult1 === -1 || createEdgeResult2 === -1) return -1;
         let verticesMap = graph.verticesMap;
 
@@ -693,6 +693,7 @@ export class DrawingLogic {
 
         let tmpDebugResult = this.addIfOneCathetusIsAbsent(graph, arrOfIdsOfVertices, this.mapLogic, edge.level);
 
+        console.log("graph", graph);
         if (tmpDebugResult >= -1) tmpDebugResult = this.deleteUnnecessaryHypotenuse(graph, edge.vertices);
         return tmpDebugResult;
     }
@@ -713,8 +714,12 @@ export class DrawingLogic {
             id2 = arrOfIdsOfVertices[2];
         }
         if (id1 && id2) {
+            console.log("addIfOneCathetusIsAbsent 1");
             let result = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id1, id2, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false);
-            graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id2, id1, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, result.route, result.length, result.edgesToBeAddedAndRoute);
+            console.log("addIfOneCathetusIsAbsent 2");
+            console.log("result", result);
+            graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(id2, id1, graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, result.route, result.length, result.edgesToBeAddedAndRoute, result.level);
+            console.log("addIfOneCathetusIsAbsent 3");
             return 0;
         }
         return -1;
