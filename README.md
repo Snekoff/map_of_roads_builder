@@ -17,5 +17,6 @@ On the other side Kingdoms will rise at global map and start to negotiate even u
 So after N years of this evolution map_of_the_roads will give you alive world with huge ammount of coonections and points and places of interest which are common places to attract travelers.
 Any rpg game could use this world generator to have world be setted in no time. And all amount of info on each point, road or even square on the map is kept inside.
 
-Map looks like this
-![image](https://user-images.githubusercontent.com/32234747/175954508-e32b686c-a545-40aa-9507-7b1b9b9de573.png)
+Map *now* looks like this
+
+![image](https://user-images.githubusercontent.com/32234747/175954958-d6352235-867e-4a3c-b04f-77322186a6d1.png)
