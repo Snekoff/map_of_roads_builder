@@ -1,3 +1,7 @@
+import {Epoch} from "../graph/epoch.js";
+import {Edge} from "../graph/edge.js";
+import {Vertice} from "../graph/vertice.js";
+
 export class MapCell {
 
     // 0 - grass
@@ -34,11 +38,15 @@ export class MapCell {
         this.multipliersMap.set('road', [0.8, 0.6, 0.5, 0.45, 0.42, 0.40, 0.38, 0.36]);
         this.multipliersMap.set('city', [0.3, 0.29, 0.28, 0.27, 0.26]);
         this.multipliersMap.set('village', [0.75, 0.55, 0.5, 0.45, 0.4]);
+        this.multipliersMap.set('fort', [0.75, 0.55, 0.5, 0.45, 0.4]);
+        this.multipliersMap.set('camp', [0.95, 0.85, 0.75, 0.74, 0.73]);
+        this.multipliersMap.set('criminal camp', [50, 150, 999, 999, 999]);
 
         this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, this.multipliersMap, this.currentMultiplier);
         for (let type of terrainTypes) {
             this.terrainTypes.set(type.type, type.level);
         }
+        this.currentMultiplierObj = { mul: this.currentMultiplier }
     }
 
     setCurrentMultiplier(terrainTypes, multipliersMap, currentMultiplier = 1) {
@@ -64,6 +72,7 @@ export class MapCell {
         }
         this.terrainTypes.set(value.type, value.level);
         this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, this.multipliersMap, this.currentMultiplier);
+        this.currentMultiplierObj = { mul: this.currentMultiplier }
         return 0;
     }
 
@@ -73,6 +82,7 @@ export class MapCell {
         if(current.level > 0) current.level--;
         else this.terrainTypes.delete(type);
         this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, this.multipliersMap, this.currentMultiplier);
+        this.currentMultiplierObj = { mul: this.currentMultiplier }
         return 0;
     }
 
@@ -101,5 +111,56 @@ export class MapCell {
         this.priceForTraveling = value;
         this.from = from;
         return 0;
+    }
+
+    save() {
+        let save_obj = {};
+        save_obj.objType = "Map Cell";
+        for(let key in this) {
+            // save Map object as array of [[key, value], ...]
+            //console.log("key", key);
+            if(key === "multipliersMap") continue;
+            if (typeof this[key] === "object" && !Array.isArray(this[key]) && !this[key].mul) {
+                save_obj[key] = [];
+                let arrOfEntries = Array.from(this[key].entries());
+
+                for (let innerKey = 0; innerKey < arrOfEntries.length; innerKey++) {
+                    let value = arrOfEntries[innerKey][1];
+                    save_obj[key].push([arrOfEntries[innerKey][0], value]);
+                }
+            }
+            /*if(Array.isArray(this[key])) {
+                save_obj[key] = [];
+                this[key].forEach(item => save_obj[key].push(item));
+                continue;
+            }*/
+            save_obj[key] = this[key];
+        }
+        /*console.log("Map cell save");
+        console.log("save_obj", save_obj);*/
+        return save_obj;
+    }
+
+    static load(paramsObj) {
+        let params = {};
+        if (typeof paramsObj === "string") paramsObj = JSON.parse(paramsObj);
+        if(!paramsObj.objType && paramsObj.objType !== "Map Cell") return -1;
+
+        for (let key in paramsObj) {
+
+            if (Array.isArray(paramsObj[key]) && paramsObj[key].at(0)) {
+                params[key] = new Map();
+                for (let i = 0; i < paramsObj[key].length; i++) {
+                    let value = paramsObj[key][i][1];
+                    if(value.length === 0) continue;
+
+                    params[key].set(paramsObj[key][i][0], value);
+                }
+            }
+            else params[key] = paramsObj[key];
+        }
+        console.log("Map cell load");
+        console.log("params", params);
+        return new MapCell(params);
     }
 }

@@ -5,8 +5,8 @@ export class Epoch {
         [[1000], [100], [500], [5], [1000]],
         [[10000], [1000], [5000], [500], [10000]]
     ]
-    priceForCamp = [[10], [750]];
-    maxComfortableRoadLengthWithoutPlacesToStop = [[500], [750]];
+    priceForCamp = [[25], [750]];
+    maxComfortableRoadLengthWithoutPlacesToStop = [[250], [750]];
 
     constructor(epoch_index) {
         this.epoch_index = epoch_index;

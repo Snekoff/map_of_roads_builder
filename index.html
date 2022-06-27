@@ -107,7 +107,7 @@
     })
 
     document.getElementById("save").addEventListener('click', () => {
-        saveAndLoad.save(graph);
+        saveAndLoad.save(graph, drawingLogic, drawingLogic.mapLogic);
     })
 
     let form = document.querySelector('#upload');
@@ -117,7 +117,15 @@
     form.addEventListener('submit', () => {
         setTimeout(() => {
             graph = saveAndLoad.getLoadedGraph();
+            drawingLogic = saveAndLoad.getLoadedDrawingLogic();
+            drawingLogic.graph = graph;
+            drawingLogic.mapLogic.graph = graph;
+            graph.mapLogic = drawingLogic.mapLogic;
+
+
             console.log("graph", graph);
+            console.log("drawingLogic", drawingLogic);
+            console.log("drawingLogic.mapLogic", drawingLogic.mapLogic);
             drawingLogic.draw.drawBackgroundImage(0, 0);
             drawingLogic.draw.drawVerticesGraphics(graph);
             drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);

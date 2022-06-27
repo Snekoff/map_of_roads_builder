@@ -157,7 +157,7 @@ export class Drawing {
         ctx.fillStyle = "Blue";
         ctx.strokeStyle = "White";
         ctx.lineWidth = 3;
-        let text = `${vertice.name}(${vertice.id}) Rich:${vertice.richness.toFixed(1)}`;
+        let text = `${vertice.name}`; // (${vertice.id}) Rich:${vertice.richness.toFixed(1)}
         ctx.strokeText(text, vertice.x - 20, vertice.y + 5);
         ctx.fillText(text, vertice.x - 20, vertice.y + 5);
     }

@@ -1,8 +1,15 @@
 import {Graph} from "./graph/graph.js";
+import {MapLogic} from "./map/map_logic.js";
+import {DrawingLogic} from "./drawing_logic.js";
 
-export function save(graph) {
+export function save(graph, drawingLogic, mapLogic) {
     // save Graph with whole inside structure as JSON
-    let jsonData = JSON.stringify(graph.save());
+    let saveObj = {};
+    saveObj.graph = graph.save();
+    //saveObj.mapLogic = mapLogic.save();
+    saveObj.drawingLogic = drawingLogic.save();
+
+    let jsonData = JSON.stringify(saveObj);
     download(jsonData, 'json.json', 'application/json'); //text/plain
     return 0;
 }
@@ -20,8 +27,13 @@ function download(content, fileName, contentType) {
 
 
 let loadedGraph;
+let loadedDrawingLogic;
 export function getLoadedGraph() {
     return loadedGraph;
+}
+
+export function getLoadedDrawingLogic() {
+    return loadedDrawingLogic;
 }
 
 export function load(event) {
@@ -32,7 +44,8 @@ export function load(event) {
     loadedGraph = promise.then(
         json => {
             //console.log("json", json);
-            loadedGraph = Graph.load(json)
+            loadedGraph = Graph.load(json);
+            loadedDrawingLogic = DrawingLogic.load(json);
         },
         error => alert(`Ошибка: ${error.message}`)
     );

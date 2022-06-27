@@ -1,47 +1,53 @@
 import {MapCell} from "./map_cell.js";
+import {Epoch} from "../graph/epoch.js";
+import {Edge} from "../graph/edge.js";
+import {Vertice} from "../graph/vertice.js";
+import {Graph} from "../graph/graph.js";
 
 export class MapLogic {
 
     hashExpiredAfterRounds = 15;
 
-    constructor(minX, minY, maxX, maxY, graph = undefined, rectGridOfTypes = [[[]]]) {
+    constructor(minX, minY, maxX, maxY, graph = undefined, isLoaded = false/*, rectGridOfTypes = [[[]]]*/) {
         this.isInitalized = true;
-        this.maxX = maxX;
-        this.maxY = maxY;
-        this.minX = minX;
-        this.minY = minY;
-        this.graph = graph;
-        this.rectGridOfTypes = rectGridOfTypes;
-        this.hashBfs = new Map();
+        if(!isLoaded) {
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.minX = minX;
+            this.minY = minY;
+            this.graph = graph;
+            /*this.rectGridOfTypes = rectGridOfTypes;*/
+            this.hashBfs = new Map();
 
-        let differX = Math.abs(Math.abs(this.maxX) - Math.abs(this.minX));
-        let differY = Math.abs(Math.abs(this.maxY) - Math.abs(this.minY));
-        let maxAxisValue = Math.max(differY, differX);
+            let differX = Math.abs(Math.abs(this.maxX) - Math.abs(this.minX));
+            let differY = Math.abs(Math.abs(this.maxY) - Math.abs(this.minY));
+            let maxAxisValue = Math.max(differY, differX);
 
-        this.blockSize = 10000;
-        // let find appropriate block size.
-        // Not too big to avoid high error cost
-        // and not too small to avoid huge expenses on search
-        while (maxAxisValue / this.blockSize < 200) {
-            this.blockSize = Math.round(this.blockSize / 10);
-            if (this.blockSize < 10 && this.blockSize !== Math.round(this.blockSize)) break;
-        }
-
-        // array of arrays of Cells
-        this.coordsGridArr = new Array(Math.ceil(differX / this.blockSize));
-        for (let i = 0; i < this.coordsGridArr.length; i++) {
-            this.coordsGridArr[i] = new Array(Math.ceil(differY / this.blockSize));
-        }
-
-        // array of arrays of Types
-        if (this.rectGridOfTypes[0][0].length === 0) {
-            this.rectGridOfTypes = new Array(Math.ceil(differX / this.blockSize));
-            for (let i = 0; i < this.rectGridOfTypes.length; i++) {
-                this.rectGridOfTypes[i] = new Array(Math.ceil(differY / this.blockSize));
+            this.blockSize = 10000;
+            // let find appropriate block size.
+            // Not too big to avoid high error cost
+            // and not too small to avoid huge expenses on search
+            while (maxAxisValue / this.blockSize < 200) {
+                this.blockSize = Math.round(this.blockSize / 10);
+                if (this.blockSize < 10 && this.blockSize !== Math.round(this.blockSize)) break;
             }
-        }
 
-        this.initializeCellsWithVertices(graph, this.blockSize);
+            // array of arrays of Cells
+            this.coordsGridArr = new Array(Math.ceil(differX / this.blockSize));
+            for (let i = 0; i < this.coordsGridArr.length; i++) {
+                this.coordsGridArr[i] = new Array(Math.ceil(differY / this.blockSize));
+            }
+
+            // array of arrays of Types
+            /* if (this.rectGridOfTypes[0][0].length === 0) {
+                 this.rectGridOfTypes = new Array(Math.ceil(differX / this.blockSize));
+                 for (let i = 0; i < this.rectGridOfTypes.length; i++) {
+                     this.rectGridOfTypes[i] = new Array(Math.ceil(differY / this.blockSize));
+                 }
+             }*/
+
+            this.initializeCellsWithVertices(graph, this.blockSize);
+        }
     }
 
     show() {
@@ -52,7 +58,8 @@ export class MapLogic {
     }
 
     addGraph(graph) {
-        this.graph = graph;
+        //this.graph = graph;
+        if(graph === undefined) return -1;
         this.initializeCellsWithVertices(graph, this.blockSize);
     }
 
@@ -74,20 +81,23 @@ export class MapLogic {
 
     createCell(params) {
         if (this.coordsGridArr[params.x][params.y] === undefined) {
-            if (!params.terrainTypes && this.rectGridOfTypes[params.x][params.y] !== undefined) {
+            /*if (!params.terrainTypes && this.rectGridOfTypes[params.x][params.y] !== undefined) {
                 params.terrainTypes = this.rectGridOfTypes[params.x][params.y];
             } else if (params.terrainTypes) {
                 this.rectGridOfTypes[params.x][params.y] = params.terrainTypes;
-            }
+            }*/
             this.coordsGridArr[params.x][params.y] = new MapCell(params);
             return 0;
         }
         return -1;
     }
 
-    addVerticeToCell(x, y, verticeId) {
+    addVerticeToCell(x, y, vertice = {type: 1, level: 0}) {
         this.createCell({x, y});
-        this.coordsGridArr[x][y].addVerticeArr(verticeId);
+        this.coordsGridArr[x][y].addVerticeArr(vertice.id);
+        let typeNames = ["city", "village", "fort", "camp", "criminal camp"];
+        let typ = typeNames[vertice.type];
+        this.coordsGridArr[x][y].addTerrainType({type: typ, level: vertice.level})
     }
 
     initializeCellsWithVertices(graph, blockSize) {
@@ -95,11 +105,11 @@ export class MapLogic {
         // console.log("initializeCellsWithVertices");
         // console.log('graph', graph);
         let arrOfVerticeCoords = this.findVerticesCordsAndReturnThemInArr(graph, blockSize);
-        this.forEachVerticeAddCellObj(arrOfVerticeCoords);
+        this.forEachVerticeAddCellObj(arrOfVerticeCoords, graph);
 
     }
 
-    forEachVerticeAddCellObj(arr) {
+    forEachVerticeAddCellObj(arr, graph) {
         // arr = [[id, x, y], ...]
         // console.log("forEachVerticeAddCellObj");
         // console.log('arr', arr);
@@ -107,7 +117,7 @@ export class MapLogic {
         for (let i = 0; i < arr.length; i++) {
             //console.log('arr[i]', arr[i]);
             if (this.coordsGridArr[arr[i][1]][arr[i][2]] !== undefined && this.coordsGridArr[arr[i][1]][arr[i][2]].verticeArr.indexOf(arr[0]) > 0) continue;
-            this.addVerticeToCell(arr[i][1], arr[i][2], arr[i][0])
+            this.addVerticeToCell(arr[i][1], arr[i][2], graph.verticesMap.get(arr[i][0]));
         }
     }
 
@@ -115,8 +125,8 @@ export class MapLogic {
         let arr = [];
         for (let vertice of graph.verticesMap.values()) {
             //  "- this.minX" to avoid negative indexes
-            let x = Math.floor(vertice.x / blockSize) - this.minX;
-            let y = Math.floor(vertice.y / blockSize) - this.minY;
+            let x = Math.floor((vertice.x - this.minX) / blockSize);
+            let y = Math.floor((vertice.y - this.minY) / blockSize);
             if (x < 0) x = 0;
             if (y < 0) y = 0;
             if (x > this.coordsGridArr.length - 1) x = this.coordsGridArr.length - 1;
@@ -126,10 +136,11 @@ export class MapLogic {
         return arr;
     }
 
-    bfsFromOneVerticeToAnother(startingVerticeId = -1, finalVerticeId = -1, graph, currentRound) {
-        let hash = this.returnHashedResultIfNotExpired(startingVerticeId, finalVerticeId, currentRound);
+    bfsFromOneVerticeToAnother(startingVerticeId = -1, finalVerticeId = -1, graph, currentRound, distance) {
+
+        let hash = this.returnHashedResultIfNotExpired(startingVerticeId, finalVerticeId, currentRound, distance);
         if (hash !== -1) {
-            console.log("bfsFromOneVerticeToAnother hashed", hash);
+            //console.log("bfsFromOneVerticeToAnother hashed", hash);
             return hash;
         }
         if (startingVerticeId === -1) startingVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
@@ -142,20 +153,21 @@ export class MapLogic {
         // console.log('graph', graph);
         let stVertice = graph.verticesMap.get(startingVerticeId);
         let fnVertice = graph.verticesMap.get(finalVerticeId);
+
         if (!stVertice && !fnVertice) {
             console.log('Error no item in graph');
             console.log('stVertice', stVertice);
             console.log('fnVertice', fnVertice);
             return;
         }
-        let stX = Math.floor(stVertice.x / this.blockSize) - this.minX;
-        let stY = Math.floor(stVertice.y / this.blockSize) - this.minY;
+        let stX = Math.floor((stVertice.x - this.minX) / this.blockSize);
+        let stY = Math.floor((stVertice.y - this.minY) / this.blockSize);
 
-        let fnX = Math.floor(fnVertice.x / this.blockSize) - this.minX;
-        let fnY = Math.floor(fnVertice.y / this.blockSize) - this.minY;
+        let fnX = Math.floor((fnVertice.x - this.minX) / this.blockSize);
+        let fnY = Math.floor((fnVertice.y - this.minY) / this.blockSize);
 
         let result = this.bfsOnGridReturnRouteAndLength([stX, stY], [fnX, fnY], stVertice, fnVertice, graph);
-        console.log('bfs result', result);
+        //console.log('bfs result', result);
         return result;
     }
 
@@ -191,8 +203,8 @@ export class MapLogic {
             return -1;
         }
         for (let entry of vertice.adjacentVerticesAndRoadLengthToThem.entries()) {
-            let x = Math.floor(vertice.x / this.blockSize) - this.minX;
-            let y = Math.floor(vertice.y / this.blockSize) - this.minY;
+            let x = Math.floor((vertice.x - this.minX ) / this.blockSize);
+            let y = Math.floor((vertice.y - this.minY ) / this.blockSize);
 
             if (temResults.has(entry[0]) && temResults.get(entry[0]).length > entry[1].length + currentSum) {
                 temResults.set(entry[0], {length: currentSum + entry[1].length, from: [x, y]});
@@ -211,7 +223,7 @@ export class MapLogic {
         let bfsHeap = [startingCell];
         let temResults = new Map();
         let stCellKey = startingCell[0] + ' ' + startingCell[1];
-        //console.log("stCellKey", stCellKey);
+
         temResults.set(stCellKey, {
             length: this.coordsGridArr[startingCell[0]][startingCell[1]].currentMultiplier * this.blockSize,
             from: null
@@ -322,32 +334,9 @@ export class MapLogic {
         let route = [];
 
         // to avoid direct connections between vertices
-        let x2 = Math.floor(startingVertice.x / this.blockSize) - this.minX;
-        let y2 = Math.floor(startingVertice.y / this.blockSize) - this.minY;
+        let x2 = Math.floor((startingVertice.x - this.minX) / this.blockSize);
+        let y2 = Math.floor((startingVertice.y - this.minY) / this.blockSize);
         return [[x2, y2]];
-
-        //
-        // let x = Math.floor(currentCell.x / this.blockSize) - this.minX;
-        // let y = Math.floor(currentCell.y / this.blockSize) - this.minY;
-        // while (currentCell.id !== startingVertice.id) {
-        //
-        //     route.unshift([x, y]);
-        //     let curCellKey = x + ' ' + y;
-        //     if(!resultMap.has(curCellKey)) {
-        //         route.unshift(`Error ${curCellKey} not present in grid results`);
-        //         break;
-        //     }
-        //     currentCell = resultMap.get(curCellKey).from;
-        //     x = currentCell[0];
-        //     y = currentCell[1];
-        // }
-        //
-        // if(route.length === 0 && startingVertice.id !== finalVertice.id) route.unshift([x, y]);
-        //
-        // let x1 = Math.floor(startingVertice.x / this.blockSize) - this.minX;
-        // let y1 = Math.floor(startingVertice.y / this.blockSize) - this.minY;
-        // route.unshift([x1, y1]);
-        // return route;
     }
 
     addRoadLevelToArrOfCells(route, level) {
@@ -364,7 +353,7 @@ export class MapLogic {
         return this.hashBfs.set(`from ${from} to ${to}`, {result, timestampInRounds});
     }
 
-    returnHashedResultIfNotExpired(from, to, currentRound) {
+    returnHashedResultIfNotExpired(from, to, currentRound, distance) {
         // console.log("returnHashedResultIfNotExpired");
         // console.log("from", from);
         // console.log("to", to);
@@ -373,9 +362,19 @@ export class MapLogic {
         if (!this.hashBfs.has(`from ${from} to ${to}`)) return -1;
         let hash = this.hashBfs.get(`from ${from} to ${to}`);
 
+        //console.log("hash", hash);
+        let length = hash.result.edgesToBeAddedAndRoute.length.reduce((sum, item) => item + sum, 0);
+        let addedTimeForOptimalRoute = 0;
+        if(length < distance * 0.6) {
+            addedTimeForOptimalRoute = Math.round((distance / length + 0.1) * 10);
+            // console.log("Optimal route increased time for hash");
+            // console.log("addedTimeForOptimalRoute", addedTimeForOptimalRoute);
+        }
+
+
         //console.log("hash.timestampInRounds", hash.timestampInRounds);
 
-        if (currentRound - hash.timestampInRounds >= this.hashExpiredAfterRounds) {
+        if (currentRound - hash.timestampInRounds >= this.hashExpiredAfterRounds + addedTimeForOptimalRoute) {
             this.hashBfs.delete(`from ${from} to ${to}`);
             return -1;
         }
@@ -492,5 +491,91 @@ export class MapLogic {
         let cell = this.coordsGridArr[route[i][0]][route[i][1]]
         if(!edgesToBeAddedAndRoute.length.length < length) edgesToBeAddedAndRoute.length.push(0);
         edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
+    }
+
+
+    save() {
+        let save_obj = {};
+        save_obj.objType = "Map Logic";
+
+        for (let key in this) {
+            // save Map object
+            if (typeof this[key] === "object" && !Array.isArray(this[key]) && !(this[key] instanceof Graph) ) {
+                save_obj[key] = [];
+                let arrOfEntries = Array.from(this[key].entries());
+
+                for (let innerKey = 0; innerKey < arrOfEntries.length; innerKey++) {
+                    let value = arrOfEntries[innerKey][1];
+
+                    save_obj[key].push([arrOfEntries[innerKey][0], value]);
+                }
+
+            } else if (Array.isArray(this[key]) && this[key].at(0) && Array.isArray(this[key][0])) {
+                // save grid with Map Cell values
+                // coordsGridArr = [[MapCell, MapCell, ...], []...]
+                save_obj[key] = [];
+                for(let i = 0; i < this[key].length; i++) {
+                    save_obj[key].push([]);
+                    let curLength = save_obj[key].length - 1;
+                    for(let j = 0; j < this[key][0].length; j++) {
+                        if(this[key][i][j] === undefined) {
+                            save_obj[key][curLength].push({length: 0});
+                            continue;
+                        }
+                        save_obj[key][curLength].push(this[key][i][j].save());
+                    }
+                }
+            } else if(this[key] instanceof Graph) {/*ignore*/}
+            else save_obj[key] = this[key];
+        }
+        console.log("save_obj", save_obj);
+
+        return save_obj;
+    }
+
+    static load(paramsObj) {
+        console.log("Map Logic paramsObj", paramsObj);
+        let mapLogic = new MapLogic(0,0,0,0, undefined, true);
+        if (typeof paramsObj === "string") paramsObj = JSON.parse(paramsObj);
+        if (!paramsObj.objType && paramsObj.objType !== "Map Logic") {
+            for (let key in paramsObj) {
+                if(key === "mapLogic") {
+                    return this.load(paramsObj[key]);
+                }
+            }
+            return -1;
+        }
+
+
+        for (let key in paramsObj) {
+            //console.log("key", key);
+            if (typeof paramsObj[key] === "object" && Array.isArray(paramsObj[key]) && paramsObj[key].at(0) && Array.isArray(paramsObj[key][0]) && key === "coordsGridArr"/*paramsObj[key][0][0].objType && paramsObj[key][0][0].objType === "Map Cell"*/) {
+                // load grid with Map Cell values
+                mapLogic[key] = []
+                for (let i = 0; i < paramsObj[key].length; i++) {
+                    mapLogic[key].push([])
+                    for (let j = 0; j < paramsObj[key][0].length; j++) {
+                        let value = paramsObj[key][i][j];
+                        if(value.length === 0) {
+                            mapLogic[key].push(undefined);
+                            continue;
+                        }
+
+                        if (value.objType && value.objType === "Map Cell") value = MapCell.load(value);
+                        mapLogic[key].push(value);
+                    }
+                }
+            } else if(Array.isArray(paramsObj[key]) && paramsObj[key].at(0) && Array.isArray(paramsObj[key][0])) {
+                // load Map object
+                mapLogic[key] = new Map();
+                for (let i = 0; i < paramsObj[key].length; i++) {
+                    let value = paramsObj[key][i][1];
+                    mapLogic[key].set(paramsObj[key][i][0], value);
+                }
+            }
+            else mapLogic[key] = paramsObj[key];
+        }
+
+        return mapLogic;
     }
 }
