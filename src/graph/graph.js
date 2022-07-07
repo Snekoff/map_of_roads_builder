@@ -226,7 +226,10 @@ export class Graph {
             }
         }
 
+
+        console.log("resultsOfEdges", resultsOfEdges);
         for (let edge of resultsOfEdges) {
+            console.log("edge", edge);
             edge.edgesMap = this.edgesMap;
             edge.edgesToBeAddedAndRoute = edgesToBeAddedAndRoute;
             this.createBfsEdge(edge);

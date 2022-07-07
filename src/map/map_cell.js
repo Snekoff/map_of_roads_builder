@@ -18,6 +18,7 @@ export class MapCell {
     currentMultiplier = 1;
 
     constructor({x, y, terrainTypes = [{type: 'grass', level: 0}], teleportToArrOfObjects = [], externalAddedTimeMul = 0, couldBePassed = true, verticeArr = []}) {
+        this.objType = "Map Cell";
         this.x = x;
         this.y = y;
         this.terrainTypes = new Map();
@@ -120,7 +121,7 @@ export class MapCell {
             // save Map object as array of [[key, value], ...]
             //console.log("key", key);
             if(key === "multipliersMap") continue;
-            if (typeof this[key] === "object" && !Array.isArray(this[key]) && !this[key].mul) {
+            if (typeof this[key] === "object" && !Array.isArray(this[key]) && this[key].mul === undefined) {
                 save_obj[key] = [];
                 let arrOfEntries = Array.from(this[key].entries());
 
@@ -128,6 +129,7 @@ export class MapCell {
                     let value = arrOfEntries[innerKey][1];
                     save_obj[key].push([arrOfEntries[innerKey][0], value]);
                 }
+                continue;
             }
             /*if(Array.isArray(this[key])) {
                 save_obj[key] = [];
@@ -136,6 +138,7 @@ export class MapCell {
             }*/
             save_obj[key] = this[key];
         }
+
         /*console.log("Map cell save");
         console.log("save_obj", save_obj);*/
         return save_obj;
@@ -147,12 +150,20 @@ export class MapCell {
         if(!paramsObj.objType && paramsObj.objType !== "Map Cell") return -1;
 
         for (let key in paramsObj) {
-
+            if(paramsObj[key].length === 0) continue;
+            
             if (Array.isArray(paramsObj[key]) && paramsObj[key].at(0)) {
                 params[key] = new Map();
                 for (let i = 0; i < paramsObj[key].length; i++) {
                     let value = paramsObj[key][i][1];
-                    if(value.length === 0) continue;
+                    if(value === undefined) {
+                        console.log("Map cell load error");
+                        console.log("paramsObj", paramsObj);
+                        console.log("key", key);
+                        console.log("i", i);
+                        console.log("paramsObj[key][i]", paramsObj[key][i]);
+                    }
+
 
                     params[key].set(paramsObj[key][i][0], value);
                 }

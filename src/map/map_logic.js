@@ -80,7 +80,7 @@ export class MapLogic {
     }
 
     createCell(params) {
-        if (this.coordsGridArr[params.x][params.y] === undefined) {
+        if (this.coordsGridArr[params.x][params.y] === undefined || this.coordsGridArr[params.x][params.y].objType !== "Map Cell") {
             /*if (!params.terrainTypes && this.rectGridOfTypes[params.x][params.y] !== undefined) {
                 params.terrainTypes = this.rectGridOfTypes[params.x][params.y];
             } else if (params.terrainTypes) {
@@ -116,7 +116,7 @@ export class MapLogic {
         // console.log('this.coordsGridArr', this.coordsGridArr);
         for (let i = 0; i < arr.length; i++) {
             //console.log('arr[i]', arr[i]);
-            if (this.coordsGridArr[arr[i][1]][arr[i][2]] !== undefined && this.coordsGridArr[arr[i][1]][arr[i][2]].verticeArr.indexOf(arr[0]) > 0) continue;
+            //if (this.coordsGridArr[arr[i][1]][arr[i][2]] !== undefined && this.coordsGridArr[arr[i][1]][arr[i][2]].verticeArr.indexOf(arr[0]) > 0) continue;
             this.addVerticeToCell(arr[i][1], arr[i][2], graph.verticesMap.get(arr[i][0]));
         }
     }
@@ -147,14 +147,14 @@ export class MapLogic {
         while (finalVerticeId === -1 || finalVerticeId === startingVerticeId) {
             finalVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
         }
-        // console.log('startingVerticeId', startingVerticeId);
-        // console.log('finalVerticeId', finalVerticeId);
-        // console.log('this.blockSize', this.blockSize);
-        // console.log('graph', graph);
+        console.log('startingVerticeId', startingVerticeId);
+        console.log('finalVerticeId', finalVerticeId);
+        console.log('this.blockSize', this.blockSize);
+        console.log('graph', graph);
         let stVertice = graph.verticesMap.get(startingVerticeId);
         let fnVertice = graph.verticesMap.get(finalVerticeId);
 
-        if (!stVertice && !fnVertice) {
+        if (!stVertice || !fnVertice) {
             console.log('Error no item in graph');
             console.log('stVertice', stVertice);
             console.log('fnVertice', fnVertice);
@@ -167,7 +167,7 @@ export class MapLogic {
         let fnY = Math.floor((fnVertice.y - this.minY) / this.blockSize);
 
         let result = this.bfsOnGridReturnRouteAndLength([stX, stY], [fnX, fnY], stVertice, fnVertice, graph);
-        //console.log('bfs result', result);
+        console.log('bfs result', result);
         return result;
     }
 
@@ -246,10 +246,11 @@ export class MapLogic {
             edgesToBeMade = this.edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith(result.route, startingCell, finalCell);
             result.edgesToBeAddedAndRoute = edgesToBeMade;
         }
-        // console.log("temResults", temResults);
-        // console.log("this.blockSize", this.blockSize);
-        // console.log("startingCell", startingCell);
-        // console.log("finalCell", finalCell);
+        /*console.log("temResults", temResults);
+        console.log("this.blockSize", this.blockSize);
+        console.log("startingCell", startingCell);
+        console.log("finalCell", finalCell);
+        console.log("result", result);*/
         // console.log("x1-x2", Math.abs(startingCell[0] - finalCell[0]));
         // console.log("y1-y2", Math.abs(startingCell[1] - finalCell[1]));
         return result;
@@ -415,7 +416,9 @@ export class MapLogic {
         //console.log("edgesToBeMadeFromRoadAndAdjacentListsToBeUpdatedWith route", route);
         for (let i = 0; i < route.length; i++) {
             length = edgesToBeAddedAndRoute.routes.length;
+
             let curCell = this.coordsGridArr[route[i][0]][route[i][1]];
+            console.log("curCell", curCell);
             if (curCell === undefined) continue;
             if (curCell.verticeArr.length === 0) {
 
@@ -554,15 +557,17 @@ export class MapLogic {
                 mapLogic[key] = []
                 for (let i = 0; i < paramsObj[key].length; i++) {
                     mapLogic[key].push([])
+                    let lngth = mapLogic[key].length;
                     for (let j = 0; j < paramsObj[key][0].length; j++) {
+
                         let value = paramsObj[key][i][j];
                         if(value.length === 0) {
-                            mapLogic[key].push(undefined);
+                            mapLogic[key][lngth - 1].push(undefined);
                             continue;
                         }
 
                         if (value.objType && value.objType === "Map Cell") value = MapCell.load(value);
-                        mapLogic[key].push(value);
+                        mapLogic[key][lngth - 1].push(value);
                     }
                 }
             } else if(Array.isArray(paramsObj[key]) && paramsObj[key].at(0) && Array.isArray(paramsObj[key][0])) {

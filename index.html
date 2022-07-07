@@ -78,7 +78,7 @@
     <input type="button" value="next step" id="next_step">
     <input type="button" value="save" id="save">
     <!--input type="button" value="load"  id="load"-->
-    <input type="button" value="map" id="map">
+    <!--<input type="button" value="map" id="map">-->
 </div>
 
 
@@ -132,12 +132,12 @@
         }, 100)
     })
 
-    document.getElementById("map").addEventListener('click', () => {
+    /*document.getElementById("map").addEventListener('click', () => {
         let background = document.querySelector('#background-layer');
         let map = new MapLogic(0, 0, background.width, background.height, graph);
         let result = map.bfsFromOneVerticeToAnother(17, 0, graph);
         drawingLogic.draw.lineFromArr(result.route);
-    })
+    })*/
 
 
 </script>
