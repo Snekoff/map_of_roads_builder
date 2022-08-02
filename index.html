@@ -77,9 +77,10 @@
     <input type="text" value="0" id="edges1">
     <input type="button" value="next step" id="next_step">
     <input type="button" value="save" id="save">
-    <!--input type="button" value="load"  id="load"-->
+<!--    <input type="button" value="classes functions"  id="cFunctions">-->
     <!--<input type="button" value="map" id="map">-->
 </div>
+
 
 
 <form id="upload">
@@ -94,6 +95,10 @@
     import {DrawingLogic} from "./src/drawing_logic.js";
     import * as saveAndLoad from "./src/save_and_load_logic.js";
     import {MapLogic} from "./src/map/map_logic.js";
+
+    import {Graph} from "./src/graph/graph.js";
+    import {Vertice} from "./src/graph/vertice.js";
+    import {Drawing} from "./src/drawing.js";
 
     let background = document.querySelector('#background-layer')
     let drawingLogic = new DrawingLogic(0, 0, background.width, background.height);
@@ -137,6 +142,10 @@
         let map = new MapLogic(0, 0, background.width, background.height, graph);
         let result = map.bfsFromOneVerticeToAnother(17, 0, graph);
         drawingLogic.draw.lineFromArr(result.route);
+    })*/
+
+    /*document.getElementById("cFunctions").addEventListener('click', () => {
+        console.log(document.getElementById(`${document.getElementById("city").value}`).innerText);
     })*/
 
 
