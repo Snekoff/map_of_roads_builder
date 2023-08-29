@@ -3,10 +3,17 @@ import {Epoch} from "../graph/epoch.js";
 import {Edge} from "../graph/edge.js";
 import {Vertice} from "../graph/vertice.js";
 import {Graph} from "../graph/graph.js";
+import generate_using_adjacent_tiles, {Generation_result_class} from "map_terrain_generation.js"
+
+// TO THINK: Пошук в ширину довго працює на великих масштабах, можна сегментувати мапу на шматки наприклад 10х10 які утворять нову мапу, в десять разів меншу
+//
+
+const terrain_types = ["plains", "forest", "hills", "mountains", "water", "rocks", "sand", "snow", "road"];
 
 export class MapLogic {
 
     hashExpiredAfterRounds = 15;
+    lessValueMoreTimeToStoreHash = 30;
 
     constructor(minX, minY, maxX, maxY, graph = undefined, isLoaded = false/*, rectGridOfTypes = [[[]]]*/) {
         this.isInitalized = true;
@@ -140,17 +147,17 @@ export class MapLogic {
 
         let hash = this.returnHashedResultIfNotExpired(startingVerticeId, finalVerticeId, currentRound, distance);
         if (hash !== -1) {
-            //console.log("bfsFromOneVerticeToAnother hashed", hash);
+            console.log("bfsFromOneVerticeToAnother hashed", hash);
             return hash;
         }
         if (startingVerticeId === -1) startingVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
         while (finalVerticeId === -1 || finalVerticeId === startingVerticeId) {
             finalVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
         }
-        console.log('startingVerticeId', startingVerticeId);
+       /* console.log('startingVerticeId', startingVerticeId);
         console.log('finalVerticeId', finalVerticeId);
         console.log('this.blockSize', this.blockSize);
-        console.log('graph', graph);
+        console.log('graph', graph);*/
         let stVertice = graph.verticesMap.get(startingVerticeId);
         let fnVertice = graph.verticesMap.get(finalVerticeId);
 
@@ -167,7 +174,7 @@ export class MapLogic {
         let fnY = Math.floor((fnVertice.y - this.minY) / this.blockSize);
 
         let result = this.bfsOnGridReturnRouteAndLength([stX, stY], [fnX, fnY], stVertice, fnVertice, graph);
-        console.log('bfs result', result);
+        //console.log('bfs result', result);
         return result;
     }
 
@@ -350,7 +357,7 @@ export class MapLogic {
     }
 
     hashResult(from, to, result, timestampInRounds) {
-        //console.log("hashResult result", result);
+        console.log("hashResult result", result);
         return this.hashBfs.set(`from ${from} to ${to}`, {result, timestampInRounds});
     }
 
@@ -367,7 +374,7 @@ export class MapLogic {
         let length = hash.result.edgesToBeAddedAndRoute.length.reduce((sum, item) => item + sum, 0);
         let addedTimeForOptimalRoute = 0;
         if(length < distance * 0.6) {
-            addedTimeForOptimalRoute = Math.round((distance / length + 0.1) * 10);
+            addedTimeForOptimalRoute = Math.round(distance / this.lessValueMoreTimeToStoreHash)//Math.round((distance / length + 0.1) * 10);
             // console.log("Optimal route increased time for hash");
             // console.log("addedTimeForOptimalRoute", addedTimeForOptimalRoute);
         }
@@ -418,7 +425,7 @@ export class MapLogic {
             length = edgesToBeAddedAndRoute.routes.length;
 
             let curCell = this.coordsGridArr[route[i][0]][route[i][1]];
-            console.log("curCell", curCell);
+            //console.log("curCell", curCell);
             if (curCell === undefined) continue;
             if (curCell.verticeArr.length === 0) {
 
@@ -455,6 +462,7 @@ export class MapLogic {
         // console.log("edgesToBeAddedAndRoute.routes", edgesToBeAddedAndRoute.routes);
         // console.log("length", length);
         if(length === 0) {
+            console.log("edge has 0 length");
             console.log("i", i);
             console.log("route", route);
             console.log("this.coordsGridArr[route[i][0]][route[i][1]]", this.coordsGridArr[route[i][0]][route[i][1]]);
@@ -496,6 +504,29 @@ export class MapLogic {
         edgesToBeAddedAndRoute.length[length - 1] += cell.currentMultiplier * this.blockSize;
     }
 
+    generate_map() {
+        let dir_values = [0, 1, -1];
+        for(let i = 0; i < this.coordsGridArr.length; i++) {
+            for(let j = 0; j < this.coordsGridArr[0].length; j++) {
+                let arr_of_types = this.getAdjacentTypes(dir_values, i, j, []);
+                let result_class = generate_using_adjacent_tiles(arr_of_types);
+                let tmp_terrain_types = [{type: terrain_types[result_class.get().type], level: 0}];
+                this.createCell({x: i, y: j, terrainTypes: tmp_terrain_types})
+            }
+        }
+    }
+
+
+    getAdjacentTypes(dir_values, i, j, arr_of_types) {
+        for (let k = 0; k < dir_values.length; k++) {
+            for (let l = 0; l < dir_values.length; l++) {
+                let new_x = i + dir_values[k], new_y = j + dir_values[l];
+                if (this.coordsGridArr[new_x][new_y] === undefined || this.coordsGridArr[new_x][new_y].objType !== "Map Cell") continue;
+                arr_of_types.push(terrain_types.indexOf(this.coordsGridArr[new_x][new_y].type));
+            }
+        }
+        return arr_of_types;
+    }
 
     save() {
         let save_obj = {};

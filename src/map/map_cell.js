@@ -2,22 +2,23 @@ import {Epoch} from "../graph/epoch.js";
 import {Edge} from "../graph/edge.js";
 import {Vertice} from "../graph/vertice.js";
 
+const min_terrain_difficulty_mul = 0.2;
+
 export class MapCell {
 
-    // 0 - grass
+    // 0 - plains
     // 1 - forest
     // 2 - hills
     // 3 - mountains
-    // 4 - small river
-    // 5 - river
-    // 6 - swamp
-    // 7 - lake
-    // 8 - rocks
-    // 9 - road[]
+    // 4 - water
+    // 5 - rocks
+    // 6 - sand
+    // 7 - snow
+    // 8 - road[]
     //multipliers = [1, 2, , , , , , , ];
     currentMultiplier = 1;
 
-    constructor({x, y, terrainTypes = [{type: 'grass', level: 0}], teleportToArrOfObjects = [], externalAddedTimeMul = 0, couldBePassed = true, verticeArr = []}) {
+    constructor({x, y, terrainTypes = [{type: 'plains', level: 0}], teleportToArrOfObjects = [], externalAddedTimeMul = 0, couldBePassed = true, verticeArr = []}) {
         this.objType = "Map Cell";
         this.x = x;
         this.y = y;
@@ -27,17 +28,19 @@ export class MapCell {
         this.couldBePassed = couldBePassed;
         this.verticeArr = verticeArr;
 
+        this.type = terrainTypes[0].type
+
         this.multipliersMap = new Map();
-        this.multipliersMap.set('grass', [1]);
+        this.multipliersMap.set('plains', [1]);
         this.multipliersMap.set('forest', [2, 3, 4]);
         this.multipliersMap.set('hills', [1.5]);
         this.multipliersMap.set('mountains', [2.5, 4, 15]);
-        this.multipliersMap.set('river', [1.3, 10, 50]);
-        this.multipliersMap.set('swamp', [3]);
-        this.multipliersMap.set('lake', [50]);
-        this.multipliersMap.set('rocks', [1.6]);
+        this.multipliersMap.set('water', [2, 10, 50]);
+        this.multipliersMap.set('rocks', [1.5]);
+        this.multipliersMap.set('sand', [1.8]);
+        this.multipliersMap.set('snow', [2, 5, 8]);
         this.multipliersMap.set('road', [0.8, 0.6, 0.5, 0.45, 0.42, 0.40, 0.38, 0.36]);
-        this.multipliersMap.set('city', [0.3, 0.29, 0.28, 0.27, 0.26]);
+        this.multipliersMap.set('city', [0.5, 0.45, 0.40, 0.35, 0.30]);
         this.multipliersMap.set('village', [0.75, 0.55, 0.5, 0.45, 0.4]);
         this.multipliersMap.set('fort', [0.75, 0.55, 0.5, 0.45, 0.4]);
         this.multipliersMap.set('camp', [0.95, 0.85, 0.75, 0.74, 0.73]);
@@ -57,7 +60,7 @@ export class MapCell {
             let mul = multipliersMap.get(type[0]);
             currentMultiplier *= mul[Math.min(type[1], mul.length - 1)];
         }
-        currentMultiplier = Math.max(currentMultiplier, 0.2);
+        currentMultiplier = Math.max(currentMultiplier, min_terrain_difficulty_mul);
         return currentMultiplier;
     }
 

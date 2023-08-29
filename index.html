@@ -4,14 +4,35 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <style>
+        @font-face {
+            font-family: "Alice in Wonderland";
+            src: url("./fonts/alice-in-wonderland-font/AliceInWonderland-1GzL0.ttf");
+        }
+
+        body {
+            background-image: url('./images/antique-big.webp');
+            background-size: 100%;
+        }
+
         #stage {
+            border-radius: 45px;
             width: 2002px;
             height: 1002px;
             position: relative;
             border: 2px solid black;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #buttons, #upload{
+            width: 30%;
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .layer {
+            border-radius: 40px;
             border: 1px solid #000000;
         }
 
@@ -20,11 +41,11 @@
         }
 
         #game-layer {
-            z-index: 3;
+            z-index: 2;
         }
 
         #vertices-layer {
-            z-index: 2;
+            z-index: 3;
         }
 
         #background-layer {
@@ -32,23 +53,20 @@
         }
 
         input {
+            background-color: antiquewhite;
+            background-image: url("./images/button background.webp");
+            border: 0;
             height: 50px;
             width: 100px;
-        }
 
-        input[type="file"] {
-            height: 50px;
-            width: 250px;
+            font-family: "Alice in Wonderland", Arial;
+            font-size: 22px;
+
+            border-radius: 15px;
         }
 
         input[type="text"] {
-            height: 44px;
-            width: 100px;
-        }
-
-        button {
-            height: 50px;
-            width: 100px;
+            height: 48px;
         }
 
         div {
@@ -58,6 +76,30 @@
         form {
             margin-top: 5px
         }
+
+        label {
+            font-family: "Alice in Wonderland", Arial;
+            background-color: antiquewhite;
+            font-size: 18px;
+
+            border-radius: 15px;
+        }
+
+        form input[type="file"] {
+            font-size: 18px;
+            width: 250px;
+            background-color: transparent;
+        }
+
+        #load {
+            align-items: baseline;
+            appearance: none;
+            padding: 0;
+            margin-bottom: 0;
+            overflow-y: hidden;
+            text-overflow: ellipsis;
+            user-select: auto;
+        }
     </style>
 </head>
 <body>
@@ -65,10 +107,10 @@
 <br>
 <div id="stage">
     <!--game-layer contains roads between vertices and text for now-->
-    <!--TODO: rebase vertices text to vertices layer if debugging is finished-->
-    <canvas class="layer" id="background-layer" width="2000" height="1000" ></canvas>
-    <canvas class="layer" id="vertices-layer" width="2000" height="1000" ></canvas>
-    <canvas class="layer" id="game-layer" width="2000" height="1000" ></canvas>
+    <!--TODO: rebase vertices text to vertices layer when debugging is finished-->
+    <canvas class="layer" id="background-layer" width="2000" height="1000"></canvas>
+    <canvas class="layer" id="vertices-layer" width="2000" height="1000"></canvas>
+    <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
 </div>
 
 <div id="buttons">
@@ -77,17 +119,16 @@
     <input type="text" value="0" id="edges1">
     <input type="button" value="next step" id="next_step">
     <input type="button" value="save" id="save">
-<!--    <input type="button" value="classes functions"  id="cFunctions">-->
+    <input type="submit" value="load" id="load" form="upload">
+    <!--    <input type="button" value="classes functions"  id="cFunctions">-->
     <!--<input type="button" value="map" id="map">-->
 </div>
 
 
-
 <form id="upload">
-    <label for="file" style="margin-left: 2px; margin-right: 83px">File to upload</label>
+    <label for="file">File to upload</label>
     <input type="file" id="file" accept=".json">
-
-    <button>load</button>
+    <!--<input type="submit" value="load" id="load">-->
 </form>
 
 

@@ -133,7 +133,7 @@ export class Drawing {
             // console.log("edg.route", edg.route);
 
             if(edg.route.length > 0) {
-                this.lineFromArr(edg.route, edg.isForVisualisation, edg.level);
+                this.lineFromArr(edg.route, edg.isForVisualisation, edg.bandwidth);
             } else {
                 let verticeMap = graph.verticesMap;
                 let id1 = edg.vertices[0], id2 = edg.vertices[1];
@@ -153,13 +153,14 @@ export class Drawing {
     drawTextOfVerticeValuesNearIt(vertice) {
         let canvas = document.getElementById("game-layer");
         let ctx = canvas.getContext("2d");
-        ctx.font = "bold 30px serif";
-        ctx.fillStyle = "Blue";
-        ctx.strokeStyle = "White";
+
+        ctx.font = "bold 28px Alice in Wonderland"; //Arial
+        ctx.fillStyle = "#79553D";
+        ctx.strokeStyle = "#FFF1D6";
         ctx.lineWidth = 3;
-        let text = `${vertice.name} (${vertice.id}) Rich:${vertice.richness.toFixed(1)}`;
-        ctx.strokeText(text, vertice.x - 20, vertice.y + 5);
-        ctx.fillText(text, vertice.x - 20, vertice.y + 5);
+        let text = `(${vertice.id}) ${vertice.name} Rich:${vertice.richness.toFixed(1)}`;
+        ctx.strokeText(text, vertice.x - 70, vertice.y - 35);
+        ctx.fillText(text, vertice.x - 70, vertice.y - 35);
     }
 
     drawVerticesGraphics(graph) {

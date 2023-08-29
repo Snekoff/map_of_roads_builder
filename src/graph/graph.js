@@ -7,6 +7,7 @@ import {MapLogic} from "../map/map_logic.js";
 export class Graph {
     reachModifier = 1 / 10000;
     incomeModifier = 1 / 300;
+    //TODO: use single edge instead of two
 
     constructor(
         numOfVertices = 0, // to generate randomly
@@ -94,7 +95,8 @@ export class Graph {
                    level = 0,
                    route = [],
                    type = 0,
-                   isForVisualisation = true
+                   isForVisualisation = true,
+                   isEitherWay
                }) {
         let mapLogic;
         if( this.mapLogic ) mapLogic = this.mapLogic;
@@ -115,7 +117,8 @@ export class Graph {
             isForVisualisation,
             bandwidth: this.epoch.getBandwidthForRoad()[level],
             richness,
-            mapLogic
+            mapLogic,
+            isEitherWay
         });
     }
 
@@ -152,10 +155,13 @@ export class Graph {
     ) {
         this.mapLogic = mapLogic;
         let bfsResult;
-         // console.log("vertice1Id", vertice1Id);
-         // console.log("vertice2Id", vertice2Id);
-        // console.log("lengthAlreadyBuilt", lengthAlreadyBuilt);
-        // console.log("edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`)", edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`));
+        console.log("vertice1Id", vertice1Id);
+        console.log("vertice2Id", vertice2Id);
+        console.log("this", this);
+        console.log("edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`)", edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`));
+        console.log("this.currentRound[0]", this.currentRound[0]);
+        console.log("this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap)", this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap));
+
         if (isBfsNeeded) bfsResult = this.mapLogic.bfsFromOneVerticeToAnother(vertice1Id, vertice2Id, this, this.currentRound[0], this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap));
 
         if (isBfsNeeded && bfsResult === undefined) {
@@ -171,6 +177,8 @@ export class Graph {
             route = bfsResult.route;
             edgesToBeAddedAndRoute = bfsResult.edgesToBeAddedAndRoute;
         }
+
+        console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
 
 
         let checkResult = 0;
@@ -198,21 +206,22 @@ export class Graph {
 
         let resultsOfEdges = [];
         for (let i = 0; i < edgesToBeAddedAndRoute.edges.length; i++) {
-            let __ret = this.forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, isBfsNeeded, protectionAmount, type, isForVisualisation, adjacentMap);
+            let __ret = this.forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, isBfsNeeded, protectionAmount, type, isForVisualisation, adjacentMap, isEitherWay);
             length = __ret.length;
             route = __ret.route;
             if (length === -1) {
                 return -1;
             }
+            //console.log("resultsOfEdges", resultsOfEdges);
 
-            if(isEitherWay) {
-                let __ret1 = this.forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, false, protectionAmount, type, isForVisualisation, adjacentMap);
+            /*if(isEitherWay) {
+                let __ret1 = this.forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, false, protectionAmount, type, isForVisualisation, adjacentMap, isEitherWay);
                 length = __ret1.length;
                 route = __ret1.route;
                 if (length === -1) {
                     return -1;
                 }
-            }
+            }*/
 
             // If route given from bfs and route goes through at least one vertice
             // than instead of one payment there will be accumulation of all
@@ -227,7 +236,7 @@ export class Graph {
         }
 
 
-        console.log("resultsOfEdges", resultsOfEdges);
+        //console.log("resultsOfEdges", resultsOfEdges);
         for (let edge of resultsOfEdges) {
             console.log("edge", edge);
             edge.edgesMap = this.edgesMap;
@@ -254,8 +263,8 @@ export class Graph {
         // create fake edges to prevent new bfs there
         if(edgesToBeAddedAndRoute.routes.length > 1 && !this.edgesMap.has(`from ${vertice1Id} to ${vertice2Id}`) && !this.edgesMap.get(`from ${vertice2Id} to ${vertice1Id}`)) {
 
-            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], length: length * 500, isForVisualisation: false, route: [], name: ""}));
-            if(isEitherWay) edgesMap.set(`from ${vertice2Id} to ${vertice1Id}`, this.createEdge({vertices:[vertice2Id, vertice1Id], length: length * 500, isForVisualisation: false, route: [], name: ""}));
+            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], length: length * 500, isForVisualisation: false, route: [], name: "", isEitherWay: isEitherWay}));
+            //if(isEitherWay) edgesMap.set(`from ${vertice2Id} to ${vertice1Id}`, this.createEdge({vertices:[vertice2Id, vertice1Id], length: length * 500, isForVisualisation: false, route: [], name: ""}));
 
         }
 
@@ -263,7 +272,7 @@ export class Graph {
     }
 
 
-    forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, isBfsNeeded, protectionAmount, type, isForVisualisation, adjacentMap) {
+    forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, isBfsNeeded, protectionAmount, type, isForVisualisation, adjacentMap, isEitherWay) {
         let vertice1IdNew = edgesToBeAddedAndRoute.edges[i][0];
         let vertice2IdNew = edgesToBeAddedAndRoute.edges[i][1];
 
@@ -301,7 +310,8 @@ export class Graph {
             type,
             isForVisualisation,
             adjacentMap,
-            isBfsNeeded
+            isBfsNeeded,
+            isEitherWay
         });
 
 
@@ -320,7 +330,8 @@ export class Graph {
                       isForVisualisation,
                       adjacentMap,
                       isBfsNeeded,
-                      edgesToBeAddedAndRoute
+                      edgesToBeAddedAndRoute,
+                      isEitherWay
                   }) {
 
         edgesMap.set(`from ${vertice1IdNew} to ${vertice2IdNew}`,
@@ -332,7 +343,8 @@ export class Graph {
                     level,
                     route,
                     type,
-                    isForVisualisation
+                    isForVisualisation,
+                    isEitherWay
                 }
             )
         );
@@ -345,6 +357,13 @@ export class Graph {
             route,
             edgesToBeAddedAndRoute
         }, this.currentRound[0]);
+        if(isEitherWay) {
+            this.mapLogic.hashResult(vertice2IdNew, vertice1IdNew, {
+                length,
+                route,
+                edgesToBeAddedAndRoute
+            }, this.currentRound[0]);
+        }
     }
 
     getCurrentLevelAndIsEdgeThere(edgesMap, vertice1Id, vertice2Id) {
@@ -388,7 +407,7 @@ export class Graph {
         return distance;
     }
 
-    checkAndSubtractMoneyOnBuildingIfNeeded(vertice1Id, vertice2Id, verticesMap, length, isCheck, epoch = {priceForRoadLevel: 0.1}, roadLevel = 0, prevLevel = 0, sponsorVertice = undefined) {
+    checkAndSubtractMoneyOnBuildingIfNeeded(vertice1Id, vertice2Id, verticesMap, length, isCheck, epoch = {getPriceForRoad() {return [0]}}, roadLevel = 0, prevLevel = 0, sponsorVertice = undefined) {
         let vertice1 = verticesMap.get(vertice1Id);
         let vertice2 = verticesMap.get(vertice2Id);
         let sponsor = sponsorVertice ? verticesMap.get(sponsorVertice) : undefined

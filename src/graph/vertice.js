@@ -88,9 +88,9 @@ export class Vertice {
     changeName(type) {
         if (type !== 0 && type !== 1) return -1;
         let newName = "new " + this.typeNames[type];
-        let tmp = this.name.lastIndexOf(" ");
-        if(tmp < 0) tmp = this.name.length - 3;
-        tmp = this.name.slice(tmp - 1);
+        let tmp = this.name.toString().lastIndexOf(" ");
+        if(tmp < 0) tmp = this.name.toString().length - 3;
+        tmp = this.name.toString().slice(Math.max(tmp, 0));
         this.name = newName + " " + tmp;
         // console.log('------------------------------------------------');
         // console.log('name', this.name);
@@ -144,7 +144,7 @@ export class Vertice {
 
     changeIncomeToAddInNextTurn(addIncomeToAddInNextTurn, isGivenByRoads = false) {
         if (!addIncomeToAddInNextTurn && typeof addIncomeToAddInNextTurn !== "number") return NaN;
-        if (isGivenByRoads) addIncomeToAddInNextTurn *= this.reachIncomeMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) addIncomeToAddInNextTurn *= this.incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
         this.incomeToAddInNextTurn += Math.round(addIncomeToAddInNextTurn * 100) / 100;
     }
 
@@ -165,7 +165,7 @@ export class Vertice {
 
     setReachIncome(value, isGivenByRoads = false) {
         if (!value && typeof value !== "number") return NaN;
-        if (isGivenByRoads) value *= this.incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) value *= this.reachIncomeMulArrOfArr[this.level][this.type];
         this.reachIncome += Math.round(value * 100) / 100;
     }
 
