@@ -3,7 +3,7 @@ import {Epoch} from "../graph/epoch.js";
 import {Edge} from "../graph/edge.js";
 import {Vertice} from "../graph/vertice.js";
 import {Graph} from "../graph/graph.js";
-import generate_using_adjacent_tiles, {Generation_result_class} from "map_terrain_generation.js"
+import {generate_using_adjacent_tiles, Generation_result_class} from "./map_terrain_generation.js"
 
 // TO THINK: Пошук в ширину довго працює на великих масштабах, можна сегментувати мапу на шматки наприклад 10х10 які утворять нову мапу, в десять разів меншу
 //
@@ -52,7 +52,7 @@ export class MapLogic {
                      this.rectGridOfTypes[i] = new Array(Math.ceil(differY / this.blockSize));
                  }
              }*/
-
+            this.generate_map();
             this.initializeCellsWithVertices(graph, this.blockSize);
         }
     }
@@ -510,10 +510,13 @@ export class MapLogic {
             for(let j = 0; j < this.coordsGridArr[0].length; j++) {
                 let arr_of_types = this.getAdjacentTypes(dir_values, i, j, []);
                 let result_class = generate_using_adjacent_tiles(arr_of_types);
-                let tmp_terrain_types = [{type: terrain_types[result_class.get().type], level: 0}];
+                //console.log("result_class = ", result_class, "arr_of_types = ", arr_of_types);
+                if(terrain_types[result_class.getType()] === undefined) console.log("generate_map terrain_types[result_class.getType()] === undefined");
+                let tmp_terrain_types = [{type: terrain_types[result_class.getType()], level: 0}];
                 this.createCell({x: i, y: j, terrainTypes: tmp_terrain_types})
             }
         }
+        console.log("generate_map this.coordsGridArr", this.coordsGridArr);
     }
 
 
@@ -521,7 +524,7 @@ export class MapLogic {
         for (let k = 0; k < dir_values.length; k++) {
             for (let l = 0; l < dir_values.length; l++) {
                 let new_x = i + dir_values[k], new_y = j + dir_values[l];
-                if (this.coordsGridArr[new_x][new_y] === undefined || this.coordsGridArr[new_x][new_y].objType !== "Map Cell") continue;
+                if (this.coordsGridArr[new_x] === undefined || this.coordsGridArr[new_x][new_y] === undefined || this.coordsGridArr[new_x][new_y].objType !== "Map Cell") continue;
                 arr_of_types.push(terrain_types.indexOf(this.coordsGridArr[new_x][new_y].type));
             }
         }

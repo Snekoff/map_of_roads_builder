@@ -57,6 +57,10 @@ export class MapCell {
         currentMultiplier = 1;
         for(let type of terrainTypes.entries()) {
             if(type[1] !== +type[1]) break;
+            if(multipliersMap.get(type[0]) === undefined) {
+                console.log("multipliersMap type[0] = ", type[0], "type[1] = ", type[1]);
+                console.log("terrainTypes = ", terrainTypes, "x =", this.x, "y =", this.y);
+            }
             let mul = multipliersMap.get(type[0]);
             currentMultiplier *= mul[Math.min(type[1], mul.length - 1)];
         }

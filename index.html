@@ -15,7 +15,7 @@
         }
 
         #stage {
-            border-radius: 45px;
+            border-radius: 25px;
             width: 2002px;
             height: 1002px;
             position: relative;
@@ -32,7 +32,7 @@
         }
 
         .layer {
-            border-radius: 40px;
+            border-radius: 22px;
             border: 1px solid #000000;
         }
 
@@ -62,7 +62,7 @@
             font-family: "Alice in Wonderland", Arial;
             font-size: 22px;
 
-            border-radius: 15px;
+            border-radius: 10px;
         }
 
         input[type="text"] {
@@ -100,6 +100,10 @@
             text-overflow: ellipsis;
             user-select: auto;
         }
+
+        .buttons {
+            border-radius: 0 0 10px 10px;
+        }
     </style>
 </head>
 <body>
@@ -113,23 +117,26 @@
     <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
 </div>
 
-<div id="buttons">
-    <input type="button" value="start NEW" id="start">
-    <input type="text" value="0" id="vertices1">
-    <input type="text" value="0" id="edges1">
-    <input type="button" value="next step" id="next_step">
-    <input type="button" value="save" id="save">
-    <input type="submit" value="load" id="load" form="upload">
-    <!--    <input type="button" value="classes functions"  id="cFunctions">-->
-    <!--<input type="button" value="map" id="map">-->
+<div class="buttons">
+    <div id="buttons">
+        <input type="button" value="start NEW" id="start">
+        <input type="text" value="0" id="vertices1">
+        <input type="text" value="0" id="edges1">
+        <input type="button" value="next step" id="next_step">
+        <input type="button" value="save" id="save">
+        <input type="submit" value="load" id="load" form="upload">
+        <!--    <input type="button" value="classes functions"  id="cFunctions">-->
+        <!--<input type="button" value="map" id="map">-->
+    </div>
+
+
+    <form id="upload">
+        <label for="file">File to upload</label>
+        <input type="file" id="file" accept=".json">
+        <!--<input type="submit" value="load" id="load">-->
+    </form>
 </div>
 
-
-<form id="upload">
-    <label for="file">File to upload</label>
-    <input type="file" id="file" accept=".json">
-    <!--<input type="submit" value="load" id="load">-->
-</form>
 
 
 <script type="module">
@@ -172,7 +179,7 @@
             console.log("graph", graph);
             console.log("drawingLogic", drawingLogic);
             console.log("drawingLogic.mapLogic", drawingLogic.mapLogic);
-            drawingLogic.draw.drawBackgroundImage(0, 0);
+            drawingLogic.draw.drawBackground(0, 0);
             drawingLogic.draw.drawVerticesGraphics(graph);
             drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)

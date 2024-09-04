@@ -1,12 +1,13 @@
 export class Drawing {
 
-    constructor(minX, minY, maxX, maxY, blockSize) {
+    constructor(minX, minY, maxX, maxY, mapLogic) {
         this.isInitalized = true;
         this.minX = minX;
         this.minY = minY;
         this.maxX = maxX;
         this.maxY = maxY;
-        this.blockSize = blockSize;
+        this.blockSize = mapLogic.blockSize;
+        this.coordsGridArr = mapLogic.coordsGridArr;
     }
 
     circle(x = 0, y = 0, indexForColor = 0) {
@@ -88,6 +89,50 @@ export class Drawing {
         }
     }
 
+    // 0 - plains  #61eb34
+    // 1 - forest  #237d06
+    // 2 - hills  #75966b
+    // 3 - mountains  #babad6
+    // 4 - water  #5a5aed
+    // 5 - rocks  #bababf
+    // 6 - sand  #d9cb36
+    // 7 - snow  #faf9eb
+    // 8 - road[]  #f0a83c
+    drawBackground(x, y) {
+        this.refresh("game-layer");
+        this.refresh("background-layer");
+        this.refresh("vertices-layer");
+
+        let canvas = document.getElementById("background-layer");
+        let ctx = canvas.getContext("2d");
+
+        let blockSize = this.blockSize
+        let colors = [
+            "#61eb34",
+            "#237d06",
+            "#75966b",
+            "#babad6",
+            "#5a5aed",
+            "#bababf",
+            "#d9cb36",
+            "#faf9eb",
+            "#f0a83c"]
+        let terrain_types = ["plains", "forest", "hills", "mountains", "water", "rocks", "sand", "snow", "road"];
+
+        for (let i = 0; i < this.coordsGridArr.length; i++) {
+            for (let j = 0; j < this.coordsGridArr[0].length; j++) {
+                let type_tmp;
+                for(let key of this.coordsGridArr[i][j].terrainTypes.keys()) {
+                    type_tmp = key;
+                    break;
+                }
+
+                ctx.fillStyle = colors[terrain_types.indexOf(type_tmp)];
+                ctx.fillRect(i * blockSize,  j * blockSize, blockSize, blockSize);
+            }
+        }
+    }
+
     drawVerticeImage(x, y, type, level) {
         let imgSrc = [
             ["./images/city_level_1.png", "./images/city_level_2.png", "./images/city_level_3.png", "./images/city_level_4.png", "./images/city_level_5.png"],
@@ -117,7 +162,8 @@ export class Drawing {
         this.circle(x, y, type);
     }
 
-    drawEdgesAndVerticesTextOnCanvas(graph) {
+    drawEdgesTextOnCanvas(graph) {
+        //TODO: змінити малювання на малювання групками ліній, замість малювання усіх І не забути в такому разі додати іконку завантаження,поки лінії відмальовуються
         let vertices = graph.getAllVertices(graph.verticesMap);
         console.log("graph.getAllVertices()");
         console.log(vertices);
@@ -142,12 +188,19 @@ export class Drawing {
                 this.line(item1.x, item1.y, item2.x, item2.y, edg.isForVisualisation, edg.level);
             }
         }
+
+        //}, 10)
+
+    }
+
+    drawVerticesTextOnCanvas(graph) {
+        let vertices = graph.getAllVertices(graph.verticesMap);
+        console.log("graph.getAllVertices()");
+        console.log(vertices);
         for (let vert of vertices) {
 
             this.drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.id));
         }
-        //}, 10)
-
     }
 
     drawTextOfVerticeValuesNearIt(vertice) {
@@ -158,7 +211,7 @@ export class Drawing {
         ctx.fillStyle = "#79553D";
         ctx.strokeStyle = "#FFF1D6";
         ctx.lineWidth = 3;
-        let text = `(${vertice.id}) ${vertice.name} Rich:${vertice.richness.toFixed(1)}`;
+        let text = `(${vertice.id}) ${vertice.name} Treasury:${vertice.richness.toFixed(1)}`;
         ctx.strokeText(text, vertice.x - 70, vertice.y - 35);
         ctx.fillText(text, vertice.x - 70, vertice.y - 35);
     }

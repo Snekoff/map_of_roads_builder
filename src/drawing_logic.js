@@ -23,7 +23,7 @@ export class DrawingLogic {
             this.maxY = maxY;
 
             this.mapLogic = new MapLogic(minX, minY, maxX, maxY);
-            this.draw = new Drawing(minX, minY, maxX, maxY, this.mapLogic.blockSize);
+            this.draw = new Drawing(minX, minY, maxX, maxY, this.mapLogic);
         }
     }
 
@@ -51,9 +51,11 @@ export class DrawingLogic {
         this.mapLogic.addGraph(this.graph);
 
         console.log('--graph--', this.graph);
-        this.draw.drawBackgroundImage(0, 0);
+        //this.draw.drawBackgroundImage(0, 0);
+        this.draw.drawBackground(0, 0);
         this.draw.drawVerticesGraphics(this.graph);
-        this.draw.drawEdgesAndVerticesTextOnCanvas(this.graph);
+        this.draw.drawEdgesTextOnCanvas(this.graph);
+        this.draw.drawVerticesTextOnCanvas(this.graph);
         return this.graph;
     }
 
@@ -155,7 +157,8 @@ export class DrawingLogic {
             this.draw.drawVerticesGraphics(graph);
         }
 
-        this.draw.drawEdgesAndVerticesTextOnCanvas(graph);
+        this.draw.drawEdgesTextOnCanvas(graph);
+        this.draw.drawVerticesTextOnCanvas(graph);
         if(this.currentRound[0] % 5 === 0) graph.upgradeEdgeRichnessForAllEdges();
         /*console.log('this.mapLogic.coordsGridArr', this.mapLogic.coordsGridArr);
         console.log('this.mapLogic.coordsGridArr[80][44]', this.mapLogic.coordsGridArr[80][44]);*/
