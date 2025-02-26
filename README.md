@@ -19,4 +19,4 @@ Any rpg game could use this world generator to have world be setted in no time. 
 
 Map *now* looks like this
 
-![image](https://user-images.githubusercontent.com/32234747/175954958-d6352235-867e-4a3c-b04f-77322186a6d1.png)
+![image](https://github.com/user-attachments/assets/c6281889-8d37-4121-8b88-9792c043df88)
