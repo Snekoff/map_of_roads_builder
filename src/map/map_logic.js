@@ -30,14 +30,14 @@ export class MapLogic {
             let differY = Math.abs(Math.abs(this.maxY) - Math.abs(this.minY));
             let maxAxisValue = Math.max(differY, differX);
 
-            this.blockSize = 10000;
+            this.blockSize = 10;
             // let find appropriate block size.
             // Not too big to avoid high error cost
             // and not too small to avoid huge expenses on search
-            while (maxAxisValue / this.blockSize < 200) {
-                this.blockSize = Math.round(this.blockSize / 10);
-                if (this.blockSize < 10 && this.blockSize !== Math.round(this.blockSize)) break;
-            }
+            /*while (maxAxisValue / this.blockSize < 200) {
+                this.blockSize -= 5;
+                if (this.blockSize < 10 || this.blockSize !== Math.round(this.blockSize)) break;
+            }*/
 
             // array of arrays of Cells
             this.coordsGridArr = new Array(Math.ceil(differX / this.blockSize));
@@ -57,11 +57,16 @@ export class MapLogic {
         }
     }
 
-    show() {
-        for (let key in this) {
-            console.log(key + ': ', this[key]);
+    showInfoOnCellByCords(x, y) {
+        if(x > this.maxX || y > this.maxY || x < this.minX || y < this.minY) {
+            console.log("showInfoOnCellByCords out of coords grid");
+            return null;
         }
-        console.log(this.checkIfCellEmpty(0, 0));
+
+        let blockX = Math.floor(+x / this.blockSize);
+        let blockY = Math.floor(+y / this.blockSize);
+
+        return this.coordsGridArr[blockX][blockY];
     }
 
     addGraph(graph) {
@@ -94,6 +99,7 @@ export class MapLogic {
                 this.rectGridOfTypes[params.x][params.y] = params.terrainTypes;
             }*/
             this.coordsGridArr[params.x][params.y] = new MapCell(params);
+
             return 0;
         }
         return -1;
@@ -147,7 +153,7 @@ export class MapLogic {
 
         let hash = this.returnHashedResultIfNotExpired(startingVerticeId, finalVerticeId, currentRound, distance);
         if (hash !== -1) {
-            console.log("bfsFromOneVerticeToAnother hashed", hash);
+            //console.log("bfsFromOneVerticeToAnother hashed", hash);
             return hash;
         }
         if (startingVerticeId === -1) startingVerticeId = Math.round(Math.random() * graph.verticesMap.size - 1);
@@ -357,7 +363,7 @@ export class MapLogic {
     }
 
     hashResult(from, to, result, timestampInRounds) {
-        console.log("hashResult result", result);
+        //console.log("hashResult result", result);
         return this.hashBfs.set(`from ${from} to ${to}`, {result, timestampInRounds});
     }
 
@@ -614,7 +620,7 @@ export class MapLogic {
             }
             else mapLogic[key] = paramsObj[key];
         }
-
+        console.log("mapLogic Load complete. result = ", mapLogic);
         return mapLogic;
     }
 }

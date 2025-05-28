@@ -22,7 +22,7 @@ export class Drawing {
             ctx.fillStyle = arrOfColors[+indexForColor];
         }
         ctx.beginPath();
-        ctx.arc(x, y, 30, 0, 2 * Math.PI);
+        ctx.arc(x, y, 10, 0, 2 * Math.PI);
         //ctx.stroke();
         ctx.fill();
     }
@@ -36,8 +36,8 @@ export class Drawing {
         let ctx = canvas.getContext("2d");
 
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(x1 + this.blockSize / 2, y1 + this.blockSize / 2);
+        ctx.lineTo(x2 + this.blockSize / 2, y2 + this.blockSize / 2);
         ctx.lineWidth = width + 1;
         ctx.strokeStyle = "black";
         //if(!isForVisualisation) ctx.strokeStyle = "orange";
@@ -57,9 +57,9 @@ export class Drawing {
         let yAdd = Math.min(this.minY, this.maxY);
 
         ctx.beginPath();
-        ctx.moveTo(arr[0][0] * this.blockSize + xAdd, arr[0][1] * this.blockSize + yAdd);
+        ctx.moveTo(arr[0][0] * this.blockSize + xAdd + this.blockSize / 2, arr[0][1] * this.blockSize + yAdd + this.blockSize / 2);
         for(let i = 1; i < arr.length; i++) {
-            ctx.lineTo(arr[i][0] * this.blockSize + xAdd, arr[i][1] * this.blockSize + yAdd);
+            ctx.lineTo(arr[i][0] * this.blockSize + xAdd + this.blockSize / 2, arr[i][1] * this.blockSize + yAdd + this.blockSize / 2);
         }
 
         ctx.lineWidth = width + 1;
@@ -99,6 +99,7 @@ export class Drawing {
     // 7 - snow  #faf9eb
     // 8 - road[]  #f0a83c
     drawBackground(x, y) {
+        console.log("this.coordsGridArr", this.coordsGridArr);
         this.refresh("game-layer");
         this.refresh("background-layer");
         this.refresh("vertices-layer");
@@ -121,19 +122,26 @@ export class Drawing {
 
         for (let i = 0; i < this.coordsGridArr.length; i++) {
             for (let j = 0; j < this.coordsGridArr[0].length; j++) {
-                let type_tmp;
-                for(let key of this.coordsGridArr[i][j].terrainTypes.keys()) {
+                let type_tmp = this.coordsGridArr[i][j].type;
+                /*for(let key of this.coordsGridArr[i][j].terrainTypes.keys()) {
                     type_tmp = key;
                     break;
-                }
+                }*/
+
+                ctx.fillStyle = colors[0]; //background of circle shaped tile
+                ctx.fillRect(i * blockSize,  j * blockSize, blockSize, blockSize);
 
                 ctx.fillStyle = colors[terrain_types.indexOf(type_tmp)];
-                ctx.fillRect(i * blockSize,  j * blockSize, blockSize, blockSize);
+                ctx.beginPath();
+                ctx.arc(i * blockSize + blockSize/2, j * blockSize + blockSize/2, Math.round(blockSize / 2), 0, 2 * Math.PI);
+                //ctx.stroke();
+                ctx.fill();
             }
         }
     }
 
     drawVerticeImage(x, y, type, level) {
+
         let imgSrc = [
             ["./images/city_level_1.png", "./images/city_level_2.png", "./images/city_level_3.png", "./images/city_level_4.png", "./images/city_level_5.png"],
             ["./images/village_level_1.png", "./images/village_level_2.png", "./images/village_level_3.png", "./images/village_level_4.png", "./images/village_level_5.png"],
@@ -141,7 +149,7 @@ export class Drawing {
             ["./images/camp.png", "./images/camp.png", "./images/camp.png", "./images/camp.png", "./images/camp.png"],
             ["./images/criminal_camp.png", "./images/criminal_camp.png", "./images/criminal_camp.png", "./images/criminal_camp.png", "./images/criminal_camp.png"],
         ];
-        let sizes = [[90, 90], [90, 90], [90, 90], [90, 90], [90, 90]];
+        let sizes = [40, 40];
         if (type >= imgSrc.length) return -1;
 
         let canvas = document.getElementById("vertices-layer");
@@ -152,18 +160,59 @@ export class Drawing {
 
         // Make sure the image is loaded first otherwise nothing will draw.
         icon.onload = function () {
-            ctx.drawImage(icon, x - sizes[type][0] / 2, y - sizes[type][0] / 2 - 20, sizes[type][0], sizes[type][1]);
+            ctx.drawImage(icon, x - sizes[0]/2, y - sizes[1], sizes[0], sizes[1]);
         }
         return 0;
     }
 
+    drawVerticeTextBox(x, y, type, level) {
+
+
+        let size = 30;
+        let types = ['City', 'Vilg', 'Fort', 'cAm', 'Bad'];
+        let levelsColors = ['#996633', '#A6A6A6', '#F2C40D', '#F2C40D'];
+        if (type >= types.length) return -1;
+        if (level >= levelsColors.length) return -1;
+
+        let canvas = document.getElementById("vertices-layer");
+        let ctx = canvas.getContext("2d");
+        //draw rectangle as font for the text
+        ctx.strokeStyle = levelsColors[level];
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - size, y - size  + 6, size + 2,size - 6);
+        ctx.fillStyle = "blanchedalmond";
+        ctx.fillRect(x - size, y - size + 6, size + 2,size - 6);
+
+        // Draw text with one Big letter
+        let oneBigLetterWidth = 16; //px
+        if(type === 3) {
+            let smallLetterWidth = 7;
+            ctx.fillStyle = levelsColors[level];
+            ctx.font = "12px Arial ";
+            ctx.fillText(types[type][0],x - size,y - size/3 + 6);
+            ctx.font = "Bold 24px Arial ";
+            ctx.fillText(types[type][1],x - size + smallLetterWidth,y - size/3 + 6);
+            ctx.font = "12px Arial ";
+            ctx.fillText(types[type].slice(2),x - size + smallLetterWidth + oneBigLetterWidth,y - size/3 + 6);
+            return 0
+        }
+        ctx.font = "Bold 24px Arial ";
+        ctx.fillStyle = levelsColors[level];
+        ctx.fillText(types[type][0],x - size,y - size/3 + 6);
+        ctx.font = "12px Arial ";
+        ctx.fillText(types[type].slice(1),x - size + oneBigLetterWidth,y - size/3 + 6);
+
+        return 0;
+    }
+
     drawImageOrColoredCircleIfCant(x, y, type, level) {
-        if (this.drawVerticeImage(x, y, type, level) > -1) return;
+        //if (this.drawVerticeImage(x, y, type, level) > -1) return;
+        if (this.drawVerticeTextBox(x, y, type, level) > -1) return;
         this.circle(x, y, type);
     }
 
     drawEdgesTextOnCanvas(graph) {
-        //TODO: змінити малювання на малювання групками ліній, замість малювання усіх І не забути в такому разі додати іконку завантаження,поки лінії відмальовуються
+        //TODO: змінити малювання на малювання групками ліній, замість малювання усіх І не забути в такому разі додати іконку завантаження,поки лінії відмальовуются
         let vertices = graph.getAllVertices(graph.verticesMap);
         console.log("graph.getAllVertices()");
         console.log(vertices);
@@ -198,7 +247,6 @@ export class Drawing {
         console.log("graph.getAllVertices()");
         console.log(vertices);
         for (let vert of vertices) {
-
             this.drawTextOfVerticeValuesNearIt(graph.verticesMap.get(vert.id));
         }
     }
@@ -207,7 +255,7 @@ export class Drawing {
         let canvas = document.getElementById("game-layer");
         let ctx = canvas.getContext("2d");
 
-        ctx.font = "bold 28px Alice in Wonderland"; //Arial
+        ctx.font = "bold 18px Alice in Wonderland"; //Arial
         ctx.fillStyle = "#79553D";
         ctx.strokeStyle = "#FFF1D6";
         ctx.lineWidth = 3;

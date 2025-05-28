@@ -12,16 +12,37 @@
         body {
             background-image: url('./images/antique-big.webp');
             background-size: 100%;
+            font-family: "Alice in Wonderland", Arial;
+        }
+
+        #mapAndInfo {
+            width: 2300px;
+            height: 1010px;
+            margin-left: auto;
+            margin-right: auto;
+
         }
 
         #stage {
             border-radius: 25px;
             width: 2002px;
             height: 1002px;
-            position: relative;
+
             border: 2px solid black;
-            margin-left: auto;
-            margin-right: auto;
+            float: left;
+            clear: none;
+        }
+
+        #cellsInfo {
+            border-radius: 25px;
+            width: 200px;
+            height: 400px;
+            margin-left: 10px;
+
+            border: 2px solid black;
+            float: left;
+            clear: none;
+            background-color: blanchedalmond;
         }
 
         #buttons, #upload{
@@ -59,7 +80,7 @@
             height: 50px;
             width: 100px;
 
-            font-family: "Alice in Wonderland", Arial;
+
             font-size: 22px;
 
             border-radius: 10px;
@@ -78,7 +99,7 @@
         }
 
         label {
-            font-family: "Alice in Wonderland", Arial;
+
             background-color: antiquewhite;
             font-size: 18px;
 
@@ -104,18 +125,29 @@
         .buttons {
             border-radius: 0 0 10px 10px;
         }
+
+
     </style>
 </head>
 <body>
 
 <br>
-<div id="stage">
-    <!--game-layer contains roads between vertices and text for now-->
-    <!--TODO: rebase vertices text to vertices layer when debugging is finished-->
-    <canvas class="layer" id="background-layer" width="2000" height="1000"></canvas>
-    <canvas class="layer" id="vertices-layer" width="2000" height="1000"></canvas>
-    <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
+<div id="mapAndInfo">
+    <div id="stage">
+        <!--game-layer contains roads between vertices and text for now-->
+        <!--TODO: rebase vertices text to vertices layer when debugging is finished-->
+        <canvas class="layer" id="background-layer" width="2000" height="1000"></canvas>
+        <canvas class="layer" id="vertices-layer" width="2000" height="1000"></canvas>
+        <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
+
+    </div>
+
+    <div id="cellsInfo">
+        <p id="cell" style="font-size: 24px">No cell selected</p>
+    </div>
 </div>
+
+
 
 <div class="buttons">
     <div id="buttons">
@@ -181,7 +213,9 @@
             console.log("drawingLogic.mapLogic", drawingLogic.mapLogic);
             drawingLogic.draw.drawBackground(0, 0);
             drawingLogic.draw.drawVerticesGraphics(graph);
-            drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
+            drawingLogic.draw.drawEdgesTextOnCanvas(graph);
+            drawingLogic.draw.drawVerticesTextOnCanvas(graph);
+            //drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
     })
 
@@ -196,7 +230,19 @@
         console.log(document.getElementById(`${document.getElementById("city").value}`).innerText);
     })*/
 
-
+    let canvas = document.querySelector('#stage');
+    canvas.onclick = function (event) {
+        console.log("event = ", event);
+        console.log("x = ", event.offsetX, " y = ", event.offsetY);
+        let cell = drawingLogic.mapLogic.showInfoOnCellByCords(event.offsetX, event.offsetY);
+        let str = "type: " + cell.type + "<br>" + "x = " + cell.x + " y = " + cell.y + "<br>" + "multiplier = " + cell.currentMultiplier + "<br>types: ";
+        let typesArr = []
+        for(let type of cell.terrainTypes.entries()) {
+            typesArr.push(type[0]);
+        }
+        str = str + typesArr;
+        document.querySelector('#cell').innerHTML = str;
+    }
 </script>
 
 

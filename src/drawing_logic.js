@@ -496,7 +496,7 @@ export class DrawingLogic {
         for (let key in this) {
             if(this[key] instanceof MapLogic) {
                 save_obj[key] = this[key].save()
-            } else if(this[key] instanceof Drawing) {/*ignore*/}
+            } else if(this[key] instanceof Drawing || this[key] instanceof Graph) {/*ignore*/}
             else save_obj[key] = this[key];
         }
         console.log("save_obj", save_obj);
@@ -523,7 +523,8 @@ export class DrawingLogic {
             }
             else drawingLogic[key] = paramsObj[key];
         }
-        drawingLogic.draw = new Drawing(drawingLogic.minX, drawingLogic.minY, drawingLogic.maxX, drawingLogic.maxY, drawingLogic.mapLogic.blockSize);
+        console.log("drawingLogic", drawingLogic);
+        drawingLogic.draw = new Drawing(drawingLogic.minX, drawingLogic.minY, drawingLogic.maxX, drawingLogic.maxY, drawingLogic.mapLogic);
         return drawingLogic;
     }
 }

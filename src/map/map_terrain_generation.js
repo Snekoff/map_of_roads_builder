@@ -22,17 +22,17 @@ import {MapCell} from "./map_cell.js";
 // making possible to generate rivers and mountain spine
 const Terrain_influence_on_further_generation_spreadsheet = [
     [2  ,1  ,0.8,0.5,1  ,1  ,1  ,1  ,1  ],
-    [1  ,2  ,1  ,0.5,1  ,0.5,0.1,1  ,1  ],
+    [1  ,2  ,1  ,0.5,1  ,0.5,0.2,1  ,1  ],
     [0.8,1  ,3.4,1.5,1  ,1  ,1  ,1  ,1  ],
     [0.5,0.5,1.5,1.5,1.5,1  ,0.5,1  ,0.3],
-    [1  ,1  ,1  ,1.5,2  ,1  ,0.1,0.8,1  ],
+    [1  ,1  ,1  ,1.5,2  ,1  ,0.2,0.8,1  ],
     [1  ,0.5,1  ,1  ,1  ,2  ,1  ,0.5,0.3],
-    [1  ,0.1,1  ,0.5,0.1,1  ,5  ,0.1,0.1],
+    [1  ,0.2,1  ,0.5,0.2,1  ,5  ,0.1,0.1],
     [1  ,1  ,1  ,1  ,0.8,0.5,0.1,1  ,1  ],
     [1  ,1  ,1  ,0.3,1  ,0.3,0.1,1  ,2  ]
 ]
 
-const Terrain_boost = [1, 1, 0.6, 1, 0.8, 0.8, 0.1, 1, 1]
+const Terrain_boost = [1, 1, 0.6, 1, 0.8, 0.8, 0.55, 0.7, 1]
 
 const direction_terrain_modifier = 20;
 
@@ -70,13 +70,12 @@ export function generate_using_adjacent_tiles(arr_of_types = []) {
         return -1;
     }
     // [1, 0.01, 2, 10, 0,05, 2, 10, 0.05, 1]
-    // right order is important!
     let cum_sum = chances_modifiers
     if (cum_sum.length > 8) {
         cum_sum.splice(8);
-
-    } // [1, 0.01, 2, 10, 0,05, 2, 10, 0.05] excluded road from generation
-
+    }
+    // [1, 0.01, 2, 10, 0,05, 2, 10, 0.05] excluded roads from generation
+    // right order is important!
     for(let i = 1; i < cum_sum.length; i++) {
         cum_sum[i] += +cum_sum[i-1];
         cum_sum[i] = +cum_sum[i].toFixed(3);

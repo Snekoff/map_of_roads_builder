@@ -6,8 +6,7 @@ import {MapLogic} from "../map/map_logic.js";
 
 export class Graph {
     reachModifier = 1 / 10000;
-    incomeModifier = 1 / 300;
-    //TODO: use single edge instead of two
+    incomeModifier = 1 / 30;
 
     constructor(
         numOfVertices = 0, // to generate randomly
@@ -155,12 +154,12 @@ export class Graph {
     ) {
         this.mapLogic = mapLogic;
         let bfsResult;
-        console.log("vertice1Id", vertice1Id);
+        /*console.log("vertice1Id", vertice1Id);
         console.log("vertice2Id", vertice2Id);
         console.log("this", this);
         console.log("edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`)", edgesMap.get(`from ${vertice1Id} to ${vertice2Id}`));
         console.log("this.currentRound[0]", this.currentRound[0]);
-        console.log("this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap)", this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap));
+        console.log("this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap)", this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap));*/
 
         if (isBfsNeeded) bfsResult = this.mapLogic.bfsFromOneVerticeToAnother(vertice1Id, vertice2Id, this, this.currentRound[0], this.countDistanceBetweenVertices(vertice1Id, vertice2Id, this.verticesMap));
 
@@ -178,7 +177,7 @@ export class Graph {
             edgesToBeAddedAndRoute = bfsResult.edgesToBeAddedAndRoute;
         }
 
-        console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
+        //console.log("edgesToBeAddedAndRoute", edgesToBeAddedAndRoute);
 
 
         let checkResult = 0;
@@ -238,7 +237,7 @@ export class Graph {
 
         //console.log("resultsOfEdges", resultsOfEdges);
         for (let edge of resultsOfEdges) {
-            console.log("edge", edge);
+            //console.log("edge", edge);
             edge.edgesMap = this.edgesMap;
             edge.edgesToBeAddedAndRoute = edgesToBeAddedAndRoute;
             this.createBfsEdge(edge);
@@ -263,7 +262,7 @@ export class Graph {
         // create fake edges to prevent new bfs there
         if(edgesToBeAddedAndRoute.routes.length > 1 && !this.edgesMap.has(`from ${vertice1Id} to ${vertice2Id}`) && !this.edgesMap.get(`from ${vertice2Id} to ${vertice1Id}`)) {
 
-            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], length: length * 500, isForVisualisation: false, route: [], name: "", isEitherWay: isEitherWay}));
+            edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], length: length * 1000, isForVisualisation: false, route: [], name: "", isEitherWay: isEitherWay}));
             //if(isEitherWay) edgesMap.set(`from ${vertice2Id} to ${vertice1Id}`, this.createEdge({vertices:[vertice2Id, vertice1Id], length: length * 500, isForVisualisation: false, route: [], name: ""}));
 
         }

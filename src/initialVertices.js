@@ -39,8 +39,8 @@ export let verticeObjectsListFromFile = [
     //     isForVisualisation: true
     // }
     {
-        x: 100,
-        y: 850,
+        x: 105,
+        y: 853,
         name: 'Fort 1',
         type: 2,
         richness: 5,
@@ -52,8 +52,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     },
     {
-        x: 200,
-        y: 400,
+        x: 206,
+        y: 404,
         name: 'Village 1',
         type: 1,
         richness: 2,
@@ -65,8 +65,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 900,
-        y: 290,
+        x: 902,
+        y: 298,
         name: 'Fort 2',
         type: 2,
         richness: 5,
@@ -78,8 +78,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1100,
-        y: 890,
+        x: 1107,
+        y: 899,
         name: 'City 1',
         type: 0,
         richness: 6,
@@ -91,8 +91,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1500,
-        y: 100,
+        x: 1506,
+        y: 105,
         name: 'City 2',
         type: 0,
         richness: 6,
@@ -104,8 +104,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1300,
-        y: 400,
+        x: 1304,
+        y: 403,
         name: 'City 3',
         type: 0,
         richness: 6,
@@ -117,8 +117,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1450,
-        y: 570,
+        x: 1452,
+        y: 571,
         name: 'Fort 3',
         type: 2,
         richness: 5,
@@ -131,8 +131,8 @@ export let verticeObjectsListFromFile = [
     }
     // ---------------------------------------------------
     , {
-        x: 150,
-        y: 100,
+        x: 153,
+        y: 108,
         name: 'City 4',
         type: 0,
         richness: 6,
@@ -144,8 +144,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 200,
-        y: 120,
+        x: 202,
+        y: 127,
         name: 'City 5',
         type: 0,
         richness: 6,
@@ -157,8 +157,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1900,
-        y: 170,
+        x: 1901,
+        y: 179,
         name: 'City 6',
         type: 0,
         richness: 6,
@@ -170,8 +170,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1800,
-        y: 140,
+        x: 1808,
+        y: 144,
         name: 'City 7',
         type: 0,
         richness: 6,
@@ -183,8 +183,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 800,
-        y: 440,
+        x: 807,
+        y: 445,
         name: 'City 8',
         type: 0,
         richness: 6,
@@ -196,8 +196,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1780,
-        y: 900,
+        x: 1786,
+        y: 909,
         name: 'Fort 4',
         type: 2,
         richness: 5,
@@ -209,8 +209,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1090,
-        y: 490,
+        x: 1093,
+        y: 492,
         name: 'Fort 5',
         type: 2,
         richness: 5,
@@ -222,8 +222,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 1200,
-        y: 800,
+        x: 1201,
+        y: 804,
         name: 'Village 2',
         type: 1,
         richness: 2,
@@ -235,8 +235,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 790,
-        y: 600,
+        x: 798,
+        y: 606,
         name: 'Village 3',
         type: 1,
         richness: 2,
@@ -248,8 +248,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 210,
-        y: 700,
+        x: 215,
+        y: 707,
         name: 'Village 4',
         type: 1,
         richness: 2,
@@ -261,8 +261,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 100,
-        y: 800,
+        x: 101,
+        y: 809,
         name: 'Village 5',
         type: 1,
         richness: 2,
@@ -274,8 +274,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 50,
-        y: 370,
+        x: 54,
+        y: 373,
         name: 'Village 6',
         type: 1,
         richness: 2,
@@ -287,8 +287,8 @@ export let verticeObjectsListFromFile = [
         isForVisualisation: true
     }
     , {
-        x: 50,
-        y: 40,
+        x: 55,
+        y: 42,
         name: 'Village 7',
         type: 1,
         richness: 2,
