@@ -4,14 +4,56 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <style>
+        @font-face {
+            font-family: "Alice in Wonderland";
+            src: url("./fonts/alice-in-wonderland-font/AliceInWonderland-1GzL0.ttf");
+        }
+
+        body {
+            background-image: url('./images/antique-big.webp');
+            background-size: 100%;
+            font-family: "Alice in Wonderland", Arial;
+        }
+
+        #mapAndInfo {
+            width: 2300px;
+            height: 1010px;
+            margin-left: auto;
+            margin-right: auto;
+
+        }
+
         #stage {
+            border-radius: 25px;
             width: 2002px;
             height: 1002px;
-            position: relative;
+
             border: 2px solid black;
+            float: left;
+            clear: none;
+        }
+
+        #cellsInfo {
+            border-radius: 25px;
+            width: 200px;
+            height: 400px;
+            margin-left: 10px;
+
+            border: 2px solid black;
+            float: left;
+            clear: none;
+            background-color: blanchedalmond;
+        }
+
+        #buttons, #upload{
+            width: 30%;
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .layer {
+            border-radius: 22px;
             border: 1px solid #000000;
         }
 
@@ -20,11 +62,11 @@
         }
 
         #game-layer {
-            z-index: 3;
+            z-index: 2;
         }
 
         #vertices-layer {
-            z-index: 2;
+            z-index: 3;
         }
 
         #background-layer {
@@ -32,23 +74,20 @@
         }
 
         input {
+            background-color: antiquewhite;
+            background-image: url("./images/button background.webp");
+            border: 0;
             height: 50px;
             width: 100px;
-        }
 
-        input[type="file"] {
-            height: 50px;
-            width: 250px;
+
+            font-size: 22px;
+
+            border-radius: 10px;
         }
 
         input[type="text"] {
-            height: 44px;
-            width: 100px;
-        }
-
-        button {
-            height: 50px;
-            width: 100px;
+            height: 48px;
         }
 
         div {
@@ -58,42 +97,88 @@
         form {
             margin-top: 5px
         }
+
+        label {
+
+            background-color: antiquewhite;
+            font-size: 18px;
+
+            border-radius: 15px;
+        }
+
+        form input[type="file"] {
+            font-size: 18px;
+            width: 250px;
+            background-color: transparent;
+        }
+
+        #load {
+            align-items: baseline;
+            appearance: none;
+            padding: 0;
+            margin-bottom: 0;
+            overflow-y: hidden;
+            text-overflow: ellipsis;
+            user-select: auto;
+        }
+
+        .buttons {
+            border-radius: 0 0 10px 10px;
+        }
+
+
     </style>
 </head>
 <body>
 
 <br>
-<div id="stage">
-    <!--game-layer contains roads between vertices and text for now-->
-    <!--TODO: rebase vertices text to vertices layer if debugging is finished-->
-    <canvas class="layer" id="background-layer" width="2000" height="1000" ></canvas>
-    <canvas class="layer" id="vertices-layer" width="2000" height="1000" ></canvas>
-    <canvas class="layer" id="game-layer" width="2000" height="1000" ></canvas>
-</div>
+<div id="mapAndInfo">
+    <div id="stage">
+        <!--game-layer contains roads between vertices and text for now-->
+        <!--TODO: rebase vertices text to vertices layer when debugging is finished-->
+        <canvas class="layer" id="background-layer" width="2000" height="1000"></canvas>
+        <canvas class="layer" id="vertices-layer" width="2000" height="1000"></canvas>
+        <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
 
-<div id="buttons">
-    <input type="button" value="start NEW" id="start">
-    <input type="text" value="0" id="vertices1">
-    <input type="text" value="0" id="edges1">
-    <input type="button" value="next step" id="next_step">
-    <input type="button" value="save" id="save">
-    <!--input type="button" value="load"  id="load"-->
-    <input type="button" value="map" id="map">
+    </div>
+
+    <div id="cellsInfo">
+        <p id="cell" style="font-size: 24px">No cell selected</p>
+    </div>
 </div>
 
 
-<form id="upload">
-    <label for="file" style="margin-left: 2px; margin-right: 83px">File to upload</label>
-    <input type="file" id="file" accept=".json">
 
-    <button>load</button>
-</form>
+<div class="buttons">
+    <div id="buttons">
+        <input type="button" value="start NEW" id="start">
+        <input type="text" value="0" id="vertices1">
+        <input type="text" value="0" id="edges1">
+        <input type="button" value="next step" id="next_step">
+        <input type="button" value="save" id="save">
+        <input type="submit" value="load" id="load" form="upload">
+        <!--    <input type="button" value="classes functions"  id="cFunctions">-->
+        <!--<input type="button" value="map" id="map">-->
+    </div>
+
+
+    <form id="upload">
+        <label for="file">File to upload</label>
+        <input type="file" id="file" accept=".json">
+        <!--<input type="submit" value="load" id="load">-->
+    </form>
+</div>
+
 
 
 <script type="module">
     import {DrawingLogic} from "./src/drawing_logic.js";
     import * as saveAndLoad from "./src/save_and_load_logic.js";
     import {MapLogic} from "./src/map/map_logic.js";
+
+    import {Graph} from "./src/graph/graph.js";
+    import {Vertice} from "./src/graph/vertice.js";
+    import {Drawing} from "./src/drawing.js";
 
     let background = document.querySelector('#background-layer')
     let drawingLogic = new DrawingLogic(0, 0, background.width, background.height);
@@ -126,20 +211,38 @@
             console.log("graph", graph);
             console.log("drawingLogic", drawingLogic);
             console.log("drawingLogic.mapLogic", drawingLogic.mapLogic);
-            drawingLogic.draw.drawBackgroundImage(0, 0);
+            drawingLogic.draw.drawBackground(0, 0);
             drawingLogic.draw.drawVerticesGraphics(graph);
-            drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
+            drawingLogic.draw.drawEdgesTextOnCanvas(graph);
+            drawingLogic.draw.drawVerticesTextOnCanvas(graph);
+            //drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
     })
 
-    document.getElementById("map").addEventListener('click', () => {
+    /*document.getElementById("map").addEventListener('click', () => {
         let background = document.querySelector('#background-layer');
         let map = new MapLogic(0, 0, background.width, background.height, graph);
         let result = map.bfsFromOneVerticeToAnother(17, 0, graph);
         drawingLogic.draw.lineFromArr(result.route);
-    })
+    })*/
 
+    /*document.getElementById("cFunctions").addEventListener('click', () => {
+        console.log(document.getElementById(`${document.getElementById("city").value}`).innerText);
+    })*/
 
+    let canvas = document.querySelector('#stage');
+    canvas.onclick = function (event) {
+        console.log("event = ", event);
+        console.log("x = ", event.offsetX, " y = ", event.offsetY);
+        let cell = drawingLogic.mapLogic.showInfoOnCellByCords(event.offsetX, event.offsetY);
+        let str = "type: " + cell.type + "<br>" + "x = " + cell.x + " y = " + cell.y + "<br>" + "multiplier = " + cell.currentMultiplier + "<br>types: ";
+        let typesArr = []
+        for(let type of cell.terrainTypes.entries()) {
+            typesArr.push(type[0]);
+        }
+        str = str + typesArr;
+        document.querySelector('#cell').innerHTML = str;
+    }
 </script>
 
 

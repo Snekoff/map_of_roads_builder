@@ -1,3 +1,7 @@
+import {Epoch} from "./epoch.js";
+import {MapLogic} from "../map/map_logic.js";
+import {Edge} from "./edge.js";
+
 const maxIntValueForProperty = 1000000;
 
 export class Vertice {
@@ -33,6 +37,7 @@ export class Vertice {
                     reachChange = 0,
                     reachIncome = 1,
                     level = 0,
+                    adjacentVerticesAndRoadLengthToThem = 0
                 }
     ) {
 
@@ -66,6 +71,11 @@ export class Vertice {
         //this.isCapital = false;
 
         this.adjacentVerticesAndRoadLengthToThem = new Map();
+        if(adjacentVerticesAndRoadLengthToThem !== 0) {
+            for (let item of adjacentVerticesAndRoadLengthToThem) {
+                this.adjacentVerticesAndRoadLengthToThem.set(item[0], item[1]);
+            }
+        }
 
         this.cumulativeCosts = 0;
     }
@@ -78,10 +88,10 @@ export class Vertice {
     changeName(type) {
         if (type !== 0 && type !== 1) return -1;
         let newName = "new " + this.typeNames[type];
-        let tmp = this.name.lastIndexOf(" ");
-        if(tmp < 0) tmp = this.name.length - 3;
-        tmp = this.name.slice(tmp);
-        this.name = newName + tmp;
+        let tmp = this.name.toString().lastIndexOf(" ");
+        if(tmp < 0) tmp = this.name.toString().length - 3;
+        tmp = this.name.toString().slice(Math.max(tmp, 0));
+        this.name = newName + " " + tmp;
         // console.log('------------------------------------------------');
         // console.log('name', this.name);
     }
@@ -107,6 +117,7 @@ export class Vertice {
             this.changeType(1);
             return 1;
         }
+        if(this.level > 5) this.level = 5;
         return this.level;
     }
 
@@ -133,7 +144,7 @@ export class Vertice {
 
     changeIncomeToAddInNextTurn(addIncomeToAddInNextTurn, isGivenByRoads = false) {
         if (!addIncomeToAddInNextTurn && typeof addIncomeToAddInNextTurn !== "number") return NaN;
-        if (isGivenByRoads) addIncomeToAddInNextTurn *= this.reachIncomeMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) addIncomeToAddInNextTurn *= this.incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
         this.incomeToAddInNextTurn += Math.round(addIncomeToAddInNextTurn * 100) / 100;
     }
 
@@ -145,7 +156,7 @@ export class Vertice {
         this.defencePower = Math.max(newDefencePower, 0);
     }
 
-    getByVariableName(name) {
+    getVariableByName(name) {
         if (!this.hasOwnProperty(name)) {
             return `Field ${name} is not present in obj`;
         }
@@ -154,7 +165,7 @@ export class Vertice {
 
     setReachIncome(value, isGivenByRoads = false) {
         if (!value && typeof value !== "number") return NaN;
-        if (isGivenByRoads) value *= this.incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) value *= this.reachIncomeMulArrOfArr[this.level][this.type];
         this.reachIncome += Math.round(value * 100) / 100;
     }
 
@@ -166,15 +177,16 @@ export class Vertice {
     applyReachChange() {
         this.reachChange += Math.round(this.reachIncome * 100) / 100;
         this.reach += Math.round(this.reachChange * 100) / 100;
-        if (this.reach > maxIntValueForProperty) this.reach = maxIntValueForProperty;
+        if (this.reach > maxIntValueForProperty) this.reach = maxIntValueForProperty - 1;
         if (this.reach < 0) this.reach = 0;
         this.reachChange = 0;
+        return 0;
     }
 
     applyIncomeChange(epoch) {
         this.richness += Math.round(this.incomeToAddInNextTurn * 100) / 100;
         this.richness = Math.round(this.richness * 1000) / 1000;
-        if (this.richness > maxIntValueForProperty) this.richness = maxIntValueForProperty;
+        if (this.richness > maxIntValueForProperty) this.richness = maxIntValueForProperty - 1;
         this.incomeToAddInNextTurn = 0;
         if (this.checkIfEnoughRichnessToLevelUp(epoch)) return this.levelUp(epoch);
         return 0;
@@ -185,8 +197,22 @@ export class Vertice {
         save_obj.objType = "Vertice";
 
         for (let key in this) {
-            save_obj[key] = this[key];
+            if (typeof this[key] === "object" && !Array.isArray(this[key])) {
+                save_obj[key] = [];
+                let arrOfEntries = Array.from(this[key].entries());
+
+                for (let innerKey = 0; innerKey < arrOfEntries.length; innerKey++) {
+                    let value = arrOfEntries[innerKey][1];
+                    save_obj[key].push([arrOfEntries[innerKey][0], value]);
+                }
+            }
+            else {
+                save_obj[key] = this[key];
+            }
         }
+        /*console.log("Vertice saved here");
+        console.log(save_obj);
+        console.log("Vertice save end here");*/
         return save_obj;
     }
 

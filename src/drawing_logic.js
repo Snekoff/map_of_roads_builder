@@ -2,416 +2,11 @@ import {Graph} from "./graph/graph.js";
 import {Drawing} from "./drawing.js";
 import {MapLogic} from "./map/map_logic.js";
 import {MapCell} from "./map/map_cell.js";
+import {verticeObjectsListFromFile} from "./initialVertices.js"
 
 export class DrawingLogic {
 
-    verticeObjectsList = [
-        // {
-        //     x: 100,
-        //     y: 450,
-        //     name: 'fort 1',
-        //     type: 2,
-        //     richness: 5,
-        //     prosperity: 10,
-        //     incomeToAddInNextTurn: 0,
-        //     numOfWares: 0,
-        //     defencePower: 0,
-        //     reach: 1000,
-        //     isForVisualisation: true
-        // },
-        // {
-        //     x: 100,
-        //     y: 650,
-        //     name: 'village 1',
-        //     type: 1,
-        //     richness: 10,
-        //     prosperity: 10,
-        //     incomeToAddInNextTurn: 0,
-        //     numOfWares: 0,
-        //     defencePower: 0,
-        //     reach: 500,
-        //     isForVisualisation: true
-        // }
-        // ,{
-        //     x: 900,
-        //     y: 290,
-        //     name: 'criminal camp 1',
-        //     type: 4,
-        //     richness: 15,
-        //     prosperity: 10,
-        //     incomeToAddInNextTurn: 0,
-        //     numOfWares: 0,
-        //     defencePower: 0,
-        //     reach: 1500,
-        //     isForVisualisation: true
-        // }
-        {
-            x: 100,
-            y: 850,
-            name: 'fort 1',
-            type: 2,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 100,
-            reach: 100,
-            isForVisualisation: true
-        },
-        {
-            x: 200,
-            y: 400,
-            name: 'village 1',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 900,
-            y: 290,
-            name: 'fort 2',
-            type: 2,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 100,
-            reach: 150,
-            isForVisualisation: true
-        }
-        , {
-            x: 1100,
-            y: 890,
-            name: 'city 1',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 150,
-            isForVisualisation: true
-        }
-        , {
-            x: 1500,
-            y: 100,
-            name: 'city 2',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 100,
-            isForVisualisation: true
-        }
-        , {
-            x: 1300,
-            y: 400,
-            name: 'city 3',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 100,
-            isForVisualisation: true
-        }
-        , {
-            x: 1450,
-            y: 570,
-            name: 'fort 3',
-            type: 2,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 100,
-            reach: 100,
-            isForVisualisation: true
-        }
-        // ---------------------------------------------------
-        , {
-            x: 150,
-            y: 100,
-            name: 'city 4',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 100,
-            isForVisualisation: true
-        }
-        , {
-            x: 200,
-            y: 120,
-            name: 'city 5',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 120,
-            isForVisualisation: true
-        }
-        , {
-            x: 1900,
-            y: 170,
-            name: 'city 6',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 100,
-            isForVisualisation: true
-        }
-        , {
-            x: 1800,
-            y: 140,
-            name: 'city 7',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 170,
-            isForVisualisation: true
-        }
-        , {
-            x: 800,
-            y: 440,
-            name: 'city 8',
-            type: 0,
-            richness: 6,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 150,
-            reach: 170,
-            isForVisualisation: true
-        }
-        , {
-            x: 1780,
-            y: 900,
-            name: 'fort 4',
-            type: 2,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 100,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 1090,
-            y: 490,
-            name: 'fort 5',
-            type: 2,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 10,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 1200,
-            y: 800,
-            name: 'village 2',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 70,
-            isForVisualisation: true
-        }
-        , {
-            x: 790,
-            y: 600,
-            name: 'village 3',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 70,
-            isForVisualisation: true
-        }
-        , {
-            x: 210,
-            y: 700,
-            name: 'village 4',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 70,
-            isForVisualisation: true
-        }
-        , {
-            x: 100,
-            y: 800,
-            name: 'village 5',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 70,
-            isForVisualisation: true
-        }
-        , {
-            x: 50,
-            y: 370,
-            name: 'village 6',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 50,
-            y: 40,
-            name: 'village 7',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 90,
-            isForVisualisation: true
-        }
-        , {
-            x: 700,
-            y: 345,
-            name: 'village 8',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 1000,
-            y: 600,
-            name: 'village 9',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 90,
-            isForVisualisation: true
-        }
-        , {
-            x: 865,
-            y: 234,
-            name: 'village 10',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 456,
-            y: 255,
-            name: 'village 11',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 100,
-            isForVisualisation: true
-        }
-        , {
-            x: 678,
-            y: 786,
-            name: 'village 12',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 50,
-            isForVisualisation: true
-        }
-        , {
-            x: 1356,
-            y: 683,
-            name: 'village 13',
-            type: 1,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 35,
-            isForVisualisation: true
-        }
-        , {
-            x: 1050,
-            y: 670,
-            name: 'camp 1',
-            type: 3,
-            richness: 2,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 35,
-            isForVisualisation: true
-        }
-        , {
-            x: 1150,
-            y: 970,
-            name: 'criminal camp 1',
-            type: 4,
-            richness: 5,
-            prosperity: 10,
-            incomeToAddInNextTurn: 0,
-            numOfWares: 0,
-            defencePower: 0,
-            reach: 35,
-            isForVisualisation: true
-        }
-
-    ];
+    verticeObjectsList = verticeObjectsListFromFile;
 
     edgeObjectsList = [];
 
@@ -428,7 +23,7 @@ export class DrawingLogic {
             this.maxY = maxY;
 
             this.mapLogic = new MapLogic(minX, minY, maxX, maxY);
-            this.draw = new Drawing(minX, minY, maxX, maxY, this.mapLogic.blockSize);
+            this.draw = new Drawing(minX, minY, maxX, maxY, this.mapLogic);
         }
     }
 
@@ -456,9 +51,11 @@ export class DrawingLogic {
         this.mapLogic.addGraph(this.graph);
 
         console.log('--graph--', this.graph);
-        this.draw.drawBackgroundImage(0, 0);
+        //this.draw.drawBackgroundImage(0, 0);
+        this.draw.drawBackground(0, 0);
         this.draw.drawVerticesGraphics(this.graph);
-        this.draw.drawEdgesAndVerticesTextOnCanvas(this.graph);
+        this.draw.drawEdgesTextOnCanvas(this.graph);
+        this.draw.drawVerticesTextOnCanvas(this.graph);
         return this.graph;
     }
 
@@ -486,7 +83,6 @@ export class DrawingLogic {
         let level = this.binaryCheckWhatLevelOfRoadCouldBeMade(item[0], item[1], graph);
         if(graph.verticesMap.get(item[0]).type === 4) isEitherWay = false;
         createEdgeResult1 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[0], item[1], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, isEitherWay, true, true);
-        //if (isEitherWay && createEdgeResult1 !== -1) createEdgeResult2 = graph.createEdgeFromTwoPointsAndAddPointsToAdjacentLists(item[1], item[0], graph.adjacentMap, graph.edgesMap, graph.nameForNextEdge, graph.verticesMap, mapLogic, 0, level, 0, false, true, false, createEdgeResult1.route, createEdgeResult1.length, createEdgeResult1.edgesToBeAddedAndRoute, createEdgeResult1.level);
         if (createEdgeResult1 === -1 || createEdgeResult2 === -1) return -1;
         let verticesMap = graph.verticesMap;
 
@@ -561,7 +157,8 @@ export class DrawingLogic {
             this.draw.drawVerticesGraphics(graph);
         }
 
-        this.draw.drawEdgesAndVerticesTextOnCanvas(graph);
+        this.draw.drawEdgesTextOnCanvas(graph);
+        this.draw.drawVerticesTextOnCanvas(graph);
         if(this.currentRound[0] % 5 === 0) graph.upgradeEdgeRichnessForAllEdges();
         /*console.log('this.mapLogic.coordsGridArr', this.mapLogic.coordsGridArr);
         console.log('this.mapLogic.coordsGridArr[80][44]', this.mapLogic.coordsGridArr[80][44]);*/
@@ -830,14 +427,16 @@ export class DrawingLogic {
                     // add vertice to cell and update layer
                     let x = Math.floor((arr[i][0] - this.mapLogic.minX) / this.mapLogic.blockSize);
                     let y = Math.floor((arr[i][1] - this.mapLogic.minY) / this.mapLogic.blockSize);
-                    this.mapLogic.addVerticeToCell(x, y, graph.verticesMap.get(graph.idForNextVertice - 1));
+                    this.mapLogic.addVerticeToCell(x, y, graph.verticesMap.get(graph.idForNextVertice[0] - 1));
                     graph.doCitiesLayerNeedARefresh = true;
                     this.mapLogic.hashBfs.clear();
 
                     // hide long edge
                     let key = `from ${arr[i][2][0]} to ${arr[i][2][1]}`;
+                    console.log("findLongEdgesAndPlaceCampsOnThem key1 = ", key);
                     graph.edgesMap.get(key).isForVisualisation = false;
-                    key = `from ${arr[i][2][1]} to ${arr[i][2][2]}`;
+                    key = `from ${arr[i][2][1]} to ${arr[i][2][0]}`;
+                    console.log("findLongEdgesAndPlaceCampsOnThem key2 = ", key);
                     graph.edgesMap.get(key).isForVisualisation = false;
                 }
 
@@ -897,7 +496,7 @@ export class DrawingLogic {
         for (let key in this) {
             if(this[key] instanceof MapLogic) {
                 save_obj[key] = this[key].save()
-            } else if(this[key] instanceof Drawing) {/*ignore*/}
+            } else if(this[key] instanceof Drawing || this[key] instanceof Graph) {/*ignore*/}
             else save_obj[key] = this[key];
         }
         console.log("save_obj", save_obj);
@@ -924,7 +523,8 @@ export class DrawingLogic {
             }
             else drawingLogic[key] = paramsObj[key];
         }
-        drawingLogic.draw = new Drawing(drawingLogic.minX, drawingLogic.minY, drawingLogic.maxX, drawingLogic.maxY, drawingLogic.mapLogic.blockSize);
+        console.log("drawingLogic", drawingLogic);
+        drawingLogic.draw = new Drawing(drawingLogic.minX, drawingLogic.minY, drawingLogic.maxX, drawingLogic.maxY, drawingLogic.mapLogic);
         return drawingLogic;
     }
 }
