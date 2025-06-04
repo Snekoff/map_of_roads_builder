@@ -170,7 +170,7 @@ export class Drawing {
 
         let size = 30;
         let types = ['City', 'Vilg', 'Fort', 'cAm', 'Bad'];
-        let levelsColors = ['#996633', '#A6A6A6', '#F2C40D', '#F2C40D'];
+        let levelsColors = ['#996633', '#A6A6A6', '#F2C40D', '#F2C40D', '#F2C40D'];
         if (type >= types.length) return -1;
         if (level >= levelsColors.length) return -1;
 

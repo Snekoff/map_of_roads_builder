@@ -5,8 +5,9 @@ import {MapLogic} from "../map/map_logic.js";
 
 
 export class Graph {
-    reachModifier = 1 / 10000;
-    incomeModifier = 1 / 30;
+    //some modifier to prevent too fast expansion
+    reachModifier = Math.round(1 / 10000 * 1000) / 1000;
+    incomeModifier = Math.round(1 / 30 * 1000) / 1000;
 
     constructor(
         numOfVertices = 0, // to generate randomly
@@ -68,16 +69,22 @@ export class Graph {
             });
             verticesMap.set(vrtce.id, vrtce);
         })
+        //console.log("checkVerticesListAndCreateVertices grph.idForNextVertice[0] = ", grph.idForNextVertice[0]);
         return grph.idForNextVertice[0];
     }
 
     createVerticesFromObjects(verticeObjectsList, verticesMap, idForNextVertice) {
         let grph = this;
+        //console.log("createVerticesFromObjects verticeObjectsList = ", verticeObjectsList, " verticesMap = ", verticesMap);
+        let newVertice = {};
         verticeObjectsList.forEach(function (item) {
-            item.id = item.id ? item.id : idForNextVertice[0]++;
-            item.name = item.name || item.name === 0 ? item.name : item.id;
-            let vertice = grph.createVertice(item);
-            verticesMap.set(item.id, vertice);
+            //console.log(" item.id = ", item.id, " idForNextVertice[0] = ", idForNextVertice[0]);
+            // create copy to keep the original value in the file
+            newVertice = JSON.parse(JSON.stringify(item));
+            newVertice.id = newVertice.id ? newVertice.id : idForNextVertice[0]++;
+            newVertice.name = newVertice.name || newVertice.name === 0 ? newVertice.name : newVertice.id;
+            let vertice = grph.createVertice(newVertice);
+            verticesMap.set(newVertice.id, vertice);
         })
         return verticesMap;
     }
@@ -629,8 +636,16 @@ export class Graph {
 
     applyIncomeChangeForAllVertices() {
         for (let vertice of this.verticesMap.values()) {
+
             let ifLeveledUp = vertice.applyIncomeChange(this.epoch);
-            if (ifLeveledUp > 0) this.doCitiesLayerNeedARefresh = true;
+            if (ifLeveledUp instanceof Object) {
+                console.log("applyIncomeChangeForAllVertices this.mapLogic", this.mapLogic);
+                let x = Math.floor(vertice.x / this.mapLogic.blockSize);
+                let y = Math.floor(vertice.y / this.mapLogic.blockSize);
+                console.log("applyIncomeChangeForAllVertices x, y", x, y);
+                this.mapLogic.coordsGridArr[x][y].updateLevelAndType(ifLeveledUp.type, ifLeveledUp.newType, ifLeveledUp.level);
+                this.doCitiesLayerNeedARefresh = true;
+            }
         }
     }
 
@@ -682,7 +697,7 @@ export class Graph {
         for (let key in paramsObj) {
 
             if (typeof paramsObj[key] === "object" && Array.isArray(paramsObj[key]) && paramsObj[key].at(0) && Array.isArray(paramsObj[key][0])) {
-
+                graph[key] = new Map();
                 for (let i = 0; i < paramsObj[key].length; i++) {
                     let value = paramsObj[key][i][1];
                     if (value.objType && value.objType === "Vertice") value = Vertice.load(value);
@@ -691,6 +706,7 @@ export class Graph {
                     graph[key].set(paramsObj[key][i][0], value);
                 }
             } else if (paramsObj[key].objType && paramsObj[key].objType === "Epoch") graph[key] = Epoch.load(paramsObj[key]);
+            else if(key === "edgesMap" || key === "adjacentMap") graph[key] = new Map();
             else graph[key] = paramsObj[key];
         }
         return graph;

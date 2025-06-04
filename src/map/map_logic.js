@@ -554,7 +554,7 @@ export class MapLogic {
                 }
 
             } else if (Array.isArray(this[key]) && this[key].at(0) && Array.isArray(this[key][0])) {
-                // save grid with Map Cell values
+                // save the grid with Map Cell values
                 // coordsGridArr = [[MapCell, MapCell, ...], []...]
                 save_obj[key] = [];
                 for(let i = 0; i < this[key].length; i++) {
@@ -617,7 +617,7 @@ export class MapLogic {
                     let value = paramsObj[key][i][1];
                     mapLogic[key].set(paramsObj[key][i][0], value);
                 }
-            }
+            } else if(key === "hashBfs") mapLogic[key] = new Map();
             else mapLogic[key] = paramsObj[key];
         }
         console.log("mapLogic Load complete. result = ", mapLogic);
