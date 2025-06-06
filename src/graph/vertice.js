@@ -4,22 +4,24 @@ import {Edge} from "./edge.js";
 
 const maxIntValueForProperty = 1000000;
 
+const reachIncomeMulArrOfArr = [
+    [1, (1 / 10), 1, (1 / 10), (1 / 10)],
+    [1.2, (1 / 9), 1.2, (1 / 9), (1 / 9)],
+    [1.4, (1 / 8), 1.4, (1 / 8), (1 / 8)],
+    [1.6, (1 / 7), 1.6, (1 / 7), (1 / 7)],
+    [2, (1 / 5), 2, (1 / 5), (1 / 5)]
+];
+const incomeToAddInNextTurnMulArrOfArr = [
+    [1, (1 / 10), 1, (1 / 3), (1 / 10)],
+    [1.2, (1 / 9), 1.2, (1 / 2), (1 / 9)],
+    [1.4, (1 / 8), 1.4, 1, (1 / 8)],
+    [1.6, (1 / 7), 1.6, 1.2, (1 / 7)],
+    [2, (1 / 5), 2, 1.6, (1 / 5)]
+];
+
 export class Vertice {
 
-    reachIncomeMulArrOfArr = [
-        [1, (1 / 10), 1, (1 / 10), (1 / 10)],
-        [1.2, (1 / 9), 1.2, (1 / 9), (1 / 9)],
-        [1.4, (1 / 8), 1.4, (1 / 8), (1 / 8)],
-        [1.6, (1 / 7), 1.6, (1 / 7), (1 / 7)],
-        [2, (1 / 5), 2, (1 / 5), (1 / 5)]
-    ];
-    incomeToAddInNextTurnMulArrOfArr = [
-        [1, (1 / 10), 1, (1 / 3), (1 / 10)],
-        [1.2, (1 / 9), 1.2, (1 / 2), (1 / 9)],
-        [1.4, (1 / 8), 1.4, 1, (1 / 8)],
-        [1.6, (1 / 7), 1.6, 1.2, (1 / 7)],
-        [2, (1 / 5), 2, 1.6, (1 / 5)]
-    ];
+
 
     constructor({
                     x,
@@ -107,18 +109,19 @@ export class Vertice {
         // village and camp could level up in city
         this.changeRichness(-1 * epoch.getCostToLevelUpByType()[this.type])
         this.level++;
+        let previousType = this.type;
         if (this.level > 4 && this.type === 1 ) {
             this.level = 0;
             this.changeType(0);
-            return 1;
+
         }
         if (this.level > 4 && this.type === 3) {
             this.level = 0;
             this.changeType(1);
-            return 1;
+
         }
         if(this.level > 5) this.level = 5;
-        return this.level;
+        return {type: previousType, newType: this.type, level: this.level};
     }
 
     changeRichness(richnessToAdd) {
@@ -144,7 +147,7 @@ export class Vertice {
 
     changeIncomeToAddInNextTurn(addIncomeToAddInNextTurn, isGivenByRoads = false) {
         if (!addIncomeToAddInNextTurn && typeof addIncomeToAddInNextTurn !== "number") return NaN;
-        if (isGivenByRoads) addIncomeToAddInNextTurn *= this.incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) addIncomeToAddInNextTurn *= incomeToAddInNextTurnMulArrOfArr[this.level][this.type];
         this.incomeToAddInNextTurn += Math.round(addIncomeToAddInNextTurn * 100) / 100;
     }
 
@@ -165,7 +168,7 @@ export class Vertice {
 
     setReachIncome(value, isGivenByRoads = false) {
         if (!value && typeof value !== "number") return NaN;
-        if (isGivenByRoads) value *= this.reachIncomeMulArrOfArr[this.level][this.type];
+        if (isGivenByRoads) value *= reachIncomeMulArrOfArr[this.level][this.type];
         this.reachIncome += Math.round(value * 100) / 100;
     }
 
@@ -175,7 +178,7 @@ export class Vertice {
     }
 
     applyReachChange() {
-        this.reachChange += Math.round(this.reachIncome * 100) / 100;
+        this.reachChange += Math.round(this.reachIncome * 100) / 100 + 50;
         this.reach += Math.round(this.reachChange * 100) / 100;
         if (this.reach > maxIntValueForProperty) this.reach = maxIntValueForProperty - 1;
         if (this.reach < 0) this.reach = 0;

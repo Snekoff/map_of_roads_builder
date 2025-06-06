@@ -1,8 +1,8 @@
 export class Epoch {
-    priceForRoadLevel = [[0, 0.01, 0.15], [0, 0.5, 0.9]];
-    bandwidthForRoadLevel = [[1, 3, 5], [1, 2, 10]];
+    priceForRoadLevel = [[0, 0.01, 0.15, 0.25, 0.30, 0.45, 0.50, 0.8], [0, 0.5, 0.9]];
+    bandwidthForRoadLevel = [[1, 3, 5, 7, 9, 12, 15, 25], [1, 2, 10]];
     costToLevelUpByType = [
-        [[1000], [100], [500], [5], [1000]],
+        [[1000], [100], [500], [15], [1000]],
         [[10000], [1000], [5000], [500], [10000]]
     ]
     priceForCamp = [[2500], [750]];

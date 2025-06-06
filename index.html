@@ -24,7 +24,7 @@
         }
 
         #stage {
-            border-radius: 25px;
+            border-radius: 16px;
             width: 2002px;
             height: 1002px;
 
@@ -33,11 +33,13 @@
             clear: none;
         }
 
-        #cellsInfo {
-            border-radius: 25px;
-            width: 200px;
-            height: 400px;
+        #cellsInfo, #cellsOptions {
+            border-radius: 16px;
+            width: 10%;
+            height: 49.2%;
             margin-left: 10px;
+            padding: 0 0 0 20px;
+            font-size: 24px;
 
             border: 2px solid black;
             float: left;
@@ -46,14 +48,14 @@
         }
 
         #buttons, #upload{
-            width: 30%;
+            width: 35%;
             position: relative;
             margin-left: auto;
             margin-right: auto;
         }
 
         .layer {
-            border-radius: 22px;
+            border-radius: 13px;
             border: 1px solid #000000;
         }
 
@@ -73,6 +75,10 @@
             z-index: 1;
         }
 
+        #selection-layer {
+            z-index: 4;
+        }
+
         input {
             background-color: antiquewhite;
             background-image: url("./images/button background.webp");
@@ -83,7 +89,7 @@
 
             font-size: 22px;
 
-            border-radius: 10px;
+            border-radius: 9px;
         }
 
         input[type="text"] {
@@ -124,6 +130,47 @@
 
         .buttons {
             border-radius: 0 0 10px 10px;
+            font-size: 24px;
+        }
+
+        #cellsOptions {
+            padding-top: 10px;
+        }
+
+        #level {
+            height: 25px;
+            width: 90px;
+            margin-top: 10px;
+            background: #C0AB7C;
+        }
+
+        select {
+            flex: 1;
+        }
+
+        select {
+            background: #C0AB7C;
+            padding: 5px;
+            border-radius: 9px;
+        }
+
+        option {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+
+        }
+
+        option:nth-of-type(odd) {
+            background: #B89E67;
+        }
+
+        option:first-of-type {
+            border-radius: 9px 9px 0 0;
+        }
+
+        option:last-of-type {
+            border-radius: 0 0 9px 9px;
         }
 
 
@@ -139,11 +186,50 @@
         <canvas class="layer" id="background-layer" width="2000" height="1000"></canvas>
         <canvas class="layer" id="vertices-layer" width="2000" height="1000"></canvas>
         <canvas class="layer" id="game-layer" width="2000" height="1000"></canvas>
+        <canvas class="layer" id="selection-layer" width="2000" height="1000"></canvas>
 
     </div>
 
     <div id="cellsInfo">
-        <p id="cell" style="font-size: 24px">No cell selected</p>
+        <p id="cell">No cell selected</p>
+
+    </div>
+    <div id="cellsOptions" >
+        type:
+
+        <select name="type" id="type">
+            <option value="plains">plains</option>
+            <option value="forest">forest</option>
+            <option value="hills">hills</option>
+            <option value="mountains">mountains</option>
+            <option value="water">water</option>
+            <option value="rocks">rocks</option>
+            <option value="sand">sand</option>
+            <option value="snow">snow</option>
+            <option value="road">road</option>
+            <option value="city">city</option>
+            <option value="village">village</option>
+            <option value="fort">fort</option>
+            <option value="camp">camp</option>
+            <option value="criminal camp">bandits/lair</option>
+        </select>
+        <br>
+        level:
+        <input type="number" value="1" id="level" min="1" max="5">
+        <br>
+        <br>
+        <input type="button" value="add type" id="add_type">
+        <input type="button" value="del type" id="del_type">
+        <br>
+        <br>
+        selection
+        <br>
+        <input type="button" value="first pos" id="first_pos">
+        <input type="button" value="sec. pos" id="second_pos">
+        <br>
+        <br>
+        <input type="button" value="add type" id="add_type_selection">
+        <input type="button" value="del type" id="del_type_selection">
     </div>
 </div>
 
@@ -151,14 +237,14 @@
 
 <div class="buttons">
     <div id="buttons">
-        <input type="button" value="start NEW" id="start">
-        <input type="text" value="0" id="vertices1">
-        <input type="text" value="0" id="edges1">
+        <input type="button" value="Start" id="start">
+        rand. vertices:
+        <input type="number" value="0" id="vertices1" min="0">
+       <!-- edges:
+        <input type="text" value="0" id="edges1">-->
         <input type="button" value="next step" id="next_step">
         <input type="button" value="save" id="save">
         <input type="submit" value="load" id="load" form="upload">
-        <!--    <input type="button" value="classes functions"  id="cFunctions">-->
-        <!--<input type="button" value="map" id="map">-->
     </div>
 
 
@@ -174,25 +260,25 @@
 <script type="module">
     import {DrawingLogic} from "./src/drawing_logic.js";
     import * as saveAndLoad from "./src/save_and_load_logic.js";
-    import {MapLogic} from "./src/map/map_logic.js";
+    import {Interface} from "./interface.js";
 
-    import {Graph} from "./src/graph/graph.js";
-    import {Vertice} from "./src/graph/vertice.js";
-    import {Drawing} from "./src/drawing.js";
 
     let background = document.querySelector('#background-layer')
     let drawingLogic = new DrawingLogic(0, 0, background.width, background.height);
     let graph;
+    let savedOffsetX = 0;
+    let savedOffsetY = 0;
     document.getElementById("start").addEventListener('click', () => {
-        graph = drawingLogic.initialVerticesEdgesShow();
+        drawingLogic = new DrawingLogic(0, 0, background.width, background.height);
+        graph = Interface.start(drawingLogic);
     })
 
     document.getElementById("next_step").addEventListener('click', () => {
-        graph = drawingLogic.buildEdgesAndUpdateView(graph);
+        graph = Interface.next_step(graph, drawingLogic);
     })
 
     document.getElementById("save").addEventListener('click', () => {
-        saveAndLoad.save(graph, drawingLogic, drawingLogic.mapLogic);
+        Interface.save(graph, drawingLogic);
     })
 
     let form = document.querySelector('#upload');
@@ -201,48 +287,71 @@
 
     form.addEventListener('submit', () => {
         setTimeout(() => {
-            graph = saveAndLoad.getLoadedGraph();
-            drawingLogic = saveAndLoad.getLoadedDrawingLogic();
-            drawingLogic.graph = graph;
-            drawingLogic.mapLogic.graph = graph;
-            graph.mapLogic = drawingLogic.mapLogic;
+            let loaded = Interface.load();
+            graph = loaded.graph;
+            drawingLogic = loaded.drawingLogic;
 
-
-            console.log("graph", graph);
-            console.log("drawingLogic", drawingLogic);
-            console.log("drawingLogic.mapLogic", drawingLogic.mapLogic);
-            drawingLogic.draw.drawBackground(0, 0);
-            drawingLogic.draw.drawVerticesGraphics(graph);
-            drawingLogic.draw.drawEdgesTextOnCanvas(graph);
-            drawingLogic.draw.drawVerticesTextOnCanvas(graph);
-            //drawingLogic.draw.drawEdgesAndVerticesTextOnCanvas(graph);
         }, 100)
     })
 
-    /*document.getElementById("map").addEventListener('click', () => {
-        let background = document.querySelector('#background-layer');
-        let map = new MapLogic(0, 0, background.width, background.height, graph);
-        let result = map.bfsFromOneVerticeToAnother(17, 0, graph);
-        drawingLogic.draw.lineFromArr(result.route);
-    })*/
 
-    /*document.getElementById("cFunctions").addEventListener('click', () => {
-        console.log(document.getElementById(`${document.getElementById("city").value}`).innerText);
-    })*/
 
     let canvas = document.querySelector('#stage');
+    let pos1 = {x: -1, y: -1};
+    let pos2 = {x: -1, y: -1};
+    let firstOrSecondPos = 0;
     canvas.onclick = function (event) {
-        console.log("event = ", event);
-        console.log("x = ", event.offsetX, " y = ", event.offsetY);
-        let cell = drawingLogic.mapLogic.showInfoOnCellByCords(event.offsetX, event.offsetY);
-        let str = "type: " + cell.type + "<br>" + "x = " + cell.x + " y = " + cell.y + "<br>" + "multiplier = " + cell.currentMultiplier + "<br>types: ";
-        let typesArr = []
-        for(let type of cell.terrainTypes.entries()) {
-            typesArr.push(type[0]);
-        }
-        str = str + typesArr;
-        document.querySelector('#cell').innerHTML = str;
+        /*console.log("event = ", event);
+        console.log("x = ", event.offsetX, " y = ", event.offsetY);*/
+        savedOffsetX = event.offsetX;
+        savedOffsetY = event.offsetY;
+        document.querySelector('#cell').innerHTML = Interface.infoWindowStr(event.offsetX, event.offsetY, drawingLogic, graph);
+
+
+        let canvas1 = document.getElementById("selection-layer");
+        let ctx1 = canvas1.getContext("2d");
+
+        let points = Interface.selectionSetPoints(pos1, pos2, firstOrSecondPos, event.offsetX, event.offsetY);
+        pos1 = points.pos1;
+        pos2 = points.pos2;
+        Interface.selectionUnderline(points.x1, points.y1, points.x2, points.y2, drawingLogic.draw.blockSize, canvas1, ctx1)
     }
+
+    document.getElementById("first_pos").addEventListener('click', () => {
+        firstOrSecondPos = 0;
+    })
+
+    document.getElementById("second_pos").addEventListener('click', () => {
+        firstOrSecondPos = 1;
+    })
+
+    document.getElementById("add_type").addEventListener('click', () => {
+        let newType = document.getElementById("type").value;
+        let newLevel = +document.getElementById("level").value;
+
+        Interface.changeTypeAndLevelOfSelectedCell(savedOffsetX, savedOffsetY, drawingLogic, graph, 0, newType, newLevel);
+
+        Interface.refreshBackgroundVerticesAndEdges(drawingLogic, graph);
+    })
+
+    document.getElementById("del_type").addEventListener('click', () => {
+        let typeToDel = document.getElementById("type").value;
+        Interface.changeTypeAndLevelOfSelectedCell(savedOffsetX, savedOffsetY, drawingLogic, graph, 1, typeToDel);
+
+        Interface.refreshBackgroundVerticesAndEdges(drawingLogic, graph);
+    })
+
+    document.getElementById("add_type_selection").addEventListener('click', () => {
+        let newType = document.getElementById("type").value;
+        let newLevel = +document.getElementById("level").value;
+        Interface.selectionTypeChange(graph, drawingLogic, pos1, pos2, 0, newType, newLevel);
+    })
+
+    document.getElementById("del_type_selection").addEventListener('click', () => {
+        let newType = document.getElementById("type").value;
+        Interface.selectionTypeChange(graph, drawingLogic, pos1, pos2, 1, newType);
+    })
+
 </script>
 
 

@@ -27,7 +27,7 @@ export class DrawingLogic {
         }
     }
 
-    initialVerticesEdgesShow(noRandomGeneration = false) {
+    initialVerticesEdgesShow(rndVertices = 0, rndEdges = 0, RandomGeneration = true) {
         //this.mapLogic = new MapLogic(this.minX, this.minY, this.maxX, this.maxY);
         //this.draw = new Drawing(this.minX, this.minY, this.maxX, this.maxY, this.mapLogic.blockSize);
 
@@ -37,7 +37,7 @@ export class DrawingLogic {
         let verticesList = [];
         let verticesNames = [];
         let edgesList = [];
-        if (!noRandomGeneration) this.randomPointsGeneration(verticesList, verticesNames, edgesList);
+        if (RandomGeneration) this.randomPointsGeneration(verticesList, verticesNames, edgesList, rndVertices, rndEdges);
 
 
         this.graph = new Graph(0,
@@ -59,21 +59,13 @@ export class DrawingLogic {
         return this.graph;
     }
 
-    randomPointsGeneration(verticesList, verticesNames, edgesList) {
-        let numOfVerticesToGenerate = +document.getElementById("vertices1").value;
-        for (let i = 0; i < numOfVerticesToGenerate; i++) {
+    randomPointsGeneration(verticesList, verticesNames, edgesList, rndVertices, rndEdges) {
+        for (let i = 0; i < rndVertices; i++) {
             verticesList.push([Math.random() * 2000, Math.random() * 1000, Math.random() * 2]);
             verticesNames.push(`gen_name_${i}`);
         }
-        let numOfEdgesToGenerate = +document.getElementById("edges1").value;
-        for (let i = 0; i < numOfEdgesToGenerate; i++) {
-            let name1 = verticesNames[Math.round(Math.random() * numOfVerticesToGenerate)];
-            let name2 = verticesNames[Math.round(Math.random() * numOfVerticesToGenerate)];
-            while (name1 === name2) {
-                name2 = verticesNames[Math.round(Math.random() * numOfVerticesToGenerate)];
-            }
-            edgesList.push([name1, name2]);
-        }
+
+
     }
 
     createEdgeAndCalculateParameters(graph, item, mapLogic, isEitherWay = true) {
@@ -167,6 +159,7 @@ export class DrawingLogic {
 
     countDistancesBetweenVerticesAndReturnReachableForEach(graph) {
         let arrOfPairs = [];
+        console.log("graph", graph);
         let vertices = graph.getAllVertices(graph.verticesMap);
         for (let i = 0; i < vertices.length; i++) {
             for (let j = i + 1; j < vertices.length; j++) {

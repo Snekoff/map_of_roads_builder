@@ -47,7 +47,7 @@ export function load(event) {
             loadedGraph = Graph.load(json);
             loadedDrawingLogic = DrawingLogic.load(json);
         },
-        error => alert(`Ошибка: ${error.message}`)
+        error => alert(`Помилка: ${error.message}`)
     );
 }
 
@@ -72,7 +72,7 @@ export function loadScript(event) {
             //console.log("json", json);
             resolve(json);
         }
-        reader.onerror = () => reject(new Error(`Ошибка загрузки файла ${file}`));
+        reader.onerror = () => reject(new Error(`Помилка завантаження файлу ${file}`));
 
         // Read the file
         reader.readAsText(file.files[0]);
