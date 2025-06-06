@@ -221,10 +221,15 @@
         <input type="button" value="add type" id="add_type">
         <input type="button" value="del type" id="del_type">
         <br>
+        <br>
         selection
         <br>
         <input type="button" value="first pos" id="first_pos">
         <input type="button" value="sec. pos" id="second_pos">
+        <br>
+        <br>
+        <input type="button" value="add type" id="add_type_selection">
+        <input type="button" value="del type" id="del_type_selection">
     </div>
 </div>
 
@@ -302,59 +307,51 @@
         savedOffsetY = event.offsetY;
         document.querySelector('#cell').innerHTML = Interface.infoWindowStr(event.offsetX, event.offsetY, drawingLogic, graph);
 
-        //selection
-        if(firstOrSecondPos === 0) {
-            pos1 = {x: event.offsetX, y: event.offsetY};
-        }
-        else {
-            pos2 = {x: event.offsetX, y: event.offsetY};
-        }
+
         let canvas1 = document.getElementById("selection-layer");
         let ctx1 = canvas1.getContext("2d");
-        let x1, y1, x2, y2;
-        // if one point not exists it means that only one point selection
-        if(pos1.x === -1 || pos1.y === -1) {
-            x1 = pos2.x;
-            y1 = pos2.y;
-            x2 = pos2.x;
-            y2 = pos2.y;
-            //console.log("pos1.x, pos1.y ", pos1.x, pos1.y," : ", x1, y1, x2, y2);
-        } else if(pos2.x === -1 || pos2.y === -1) {
-            x1 = pos1.x;
-            y1 = pos1.y;
-            x2 = pos1.x;
-            y2 = pos1.y;
-            //console.log("pos2.x, pos2.y ", pos2.x, pos2.y," : ", x1, y1, x2, y2);
-        } else {
-            x1 = pos1.x;
-            y1 = pos1.y;
-            x2 = pos2.x;
-            y2 = pos2.y;
-        }
-        Interface.selectionUnderline(x1, y1, x2, y2, drawingLogic.draw.blockSize, canvas1, ctx1)
+
+        let points = Interface.selectionSetPoints(pos1, pos2, firstOrSecondPos, event.offsetX, event.offsetY);
+        pos1 = points.pos1;
+        pos2 = points.pos2;
+        Interface.selectionUnderline(points.x1, points.y1, points.x2, points.y2, drawingLogic.draw.blockSize, canvas1, ctx1)
     }
 
     document.getElementById("first_pos").addEventListener('click', () => {
         firstOrSecondPos = 0;
-        console.log("firstOrSecondPos = ", firstOrSecondPos);
     })
 
     document.getElementById("second_pos").addEventListener('click', () => {
         firstOrSecondPos = 1;
-        console.log("firstOrSecondPos = ", firstOrSecondPos);
     })
 
     document.getElementById("add_type").addEventListener('click', () => {
         let newType = document.getElementById("type").value;
         let newLevel = +document.getElementById("level").value;
-        console.log("newLevel = ", newLevel);
-        Interface.optionsWindow(savedOffsetX, savedOffsetY, drawingLogic, graph, 0, newType, newLevel);
+
+        Interface.changeTypeAndLevelOfSelectedCell(savedOffsetX, savedOffsetY, drawingLogic, graph, 0, newType, newLevel);
+
+        Interface.refreshBackgroundVerticesAndEdges(drawingLogic, graph);
     })
 
     document.getElementById("del_type").addEventListener('click', () => {
         let typeToDel = document.getElementById("type").value;
-        Interface.optionsWindow(savedOffsetX, savedOffsetY, drawingLogic, graph, 1, typeToDel);
+        Interface.changeTypeAndLevelOfSelectedCell(savedOffsetX, savedOffsetY, drawingLogic, graph, 1, typeToDel);
+
+        Interface.refreshBackgroundVerticesAndEdges(drawingLogic, graph);
     })
+
+    document.getElementById("add_type_selection").addEventListener('click', () => {
+        let newType = document.getElementById("type").value;
+        let newLevel = +document.getElementById("level").value;
+        Interface.selectionTypeChange(graph, drawingLogic, pos1, pos2, 0, newType, newLevel);
+    })
+
+    document.getElementById("del_type_selection").addEventListener('click', () => {
+        let newType = document.getElementById("type").value;
+        Interface.selectionTypeChange(graph, drawingLogic, pos1, pos2, 1, newType);
+    })
+
 </script>
 
 

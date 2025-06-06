@@ -178,7 +178,7 @@ export class Vertice {
     }
 
     applyReachChange() {
-        this.reachChange += Math.round(this.reachIncome * 100) / 100;
+        this.reachChange += Math.round(this.reachIncome * 100) / 100 + 50;
         this.reach += Math.round(this.reachChange * 100) / 100;
         if (this.reach > maxIntValueForProperty) this.reach = maxIntValueForProperty - 1;
         if (this.reach < 0) this.reach = 0;

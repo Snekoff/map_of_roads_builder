@@ -92,7 +92,7 @@ export class Drawing {
     // 0 - plains  #61eb34
     // 1 - forest  #237d06
     // 2 - hills  #75966b
-    // 3 - mountains  #babad6
+    // 3 - mountains  #707086
     // 4 - water  #5a5aed
     // 5 - rocks  #bababf
     // 6 - sand  #d9cb36
@@ -112,7 +112,7 @@ export class Drawing {
             "#61eb34",
             "#237d06",
             "#75966b",
-            "#babad6",
+            "#707086",
             "#5a5aed",
             "#bababf",
             "#d9cb36",

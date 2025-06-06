@@ -419,7 +419,7 @@ export class Graph {
         let sponsor = sponsorVertice ? verticesMap.get(sponsorVertice) : undefined
         if (!vertice1 || !vertice2) return {checkResult: -1, roadLevel: 0};
         if (length <= 0) return {checkResult: -1, roadLevel: 0};
-        let priceForRoadLevel = epoch.getPriceForRoad()[roadLevel] - epoch.getPriceForRoad()[prevLevel];
+        let priceForRoadLevel = epoch.getPriceForRoad()[roadLevel] - epoch.getPriceForRoad()[prevLevel] / 2;
 
 
         let type1 = sponsor ? sponsor.type : vertice1.type;

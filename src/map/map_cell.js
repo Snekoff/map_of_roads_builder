@@ -60,7 +60,7 @@ export class MapCell {
             }
         }
         else {
-            terrainTypes_0 = terrainTypes[0][0];
+            terrainTypes_0 = terrainTypes[0] && terrainTypes[0][0] ? terrainTypes[0][0]: "plains";
             for (let type of terrainTypes) {
                 this.terrainTypes.set(type[0], type[1]);
             }
@@ -131,7 +131,7 @@ export class MapCell {
         return 0;
     }
 
-    AddTypeAndLevel(newTypeId, level) {
+    addTypeAndLevel(newTypeId, level) {
         let types = ["plains", "forest", "hills", "mountains", "water", "rocks", "sand", "snow", "road",
             "city", "village", "fort", "camp", "criminal camp"];
         let newTypeStr = types[newTypeId];
@@ -145,7 +145,7 @@ export class MapCell {
         return 0;
     }
 
-    DelType(newTypeId) {
+    delType(newTypeId) {
         let types = ["plains", "forest", "hills", "mountains", "water", "rocks", "sand", "snow", "road",
             "city", "village", "fort", "camp", "criminal camp"];
         let newTypeStr = types[newTypeId];
@@ -155,6 +155,13 @@ export class MapCell {
             this.currentMultiplier = 1;
             this.currentMultiplierObj = { mul: this.currentMultiplier }
             return 0
+        }
+        if(!this.terrainTypes.has(this.type)) {
+            //this.type = this.terrainTypes.keys()[0];
+            for (let type1 of this.terrainTypes.keys()) {
+                this.type = type1;
+                break;
+            }
         }
 
         this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, multipliersMap);
