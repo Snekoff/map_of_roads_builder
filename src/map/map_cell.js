@@ -163,6 +163,9 @@ export class MapCell {
                 break;
             }
         }
+        if(newTypeId > 8) {
+            this.verticeArr.splice(0, 1);
+        }
 
         this.currentMultiplier = this.setCurrentMultiplier(this.terrainTypes, multipliersMap);
         this.currentMultiplierObj = { mul: this.currentMultiplier }

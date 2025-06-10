@@ -19,6 +19,7 @@ export class Interface {
     }
 
     static next_step(graph, drawingLogic) {
+        console.log("next_step graph ", graph)
         return drawingLogic.buildEdgesAndUpdateView(graph);
     }
 
@@ -123,7 +124,7 @@ export class Interface {
         if(addOrDel === 0) {
             if(newType > 8) {
                 let tmpName = "added " + type + graph.idForNextVertice[0];
-                console.log("1 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
+                //console.log("1 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
                 let vrtce = graph.createVertice({
                     x: offsetX,
                     y: offsetY,
@@ -133,7 +134,7 @@ export class Interface {
                     level: level - 1,
                     richness: 10
                 });
-                console.log("2 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
+                //console.log("2 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
                 graph.verticesMap.set(vrtce.id, vrtce);
                 drawingLogic.mapLogic.addVerticeToCell(
                     Math.floor(offsetX / drawingLogic.mapLogic.blockSize),
@@ -143,7 +144,15 @@ export class Interface {
                 cell.addTypeAndLevel(newType, level - 1);
             }
         } else {
-            //TODO: add deletion for vertices. Delete vertice without deleting edges. That could be implemented later
+            //console.log("changeTypeAndLevelOfSelectedCell newType = ", newType);
+            //console.log(" cell.verticeArr[0] = ", cell.verticeArr[0]);
+            if(newType > 8) {
+                //TODO: fix edges and bfs. after vertice deltiton it still finds deleted vertices somehow
+                if(cell.verticeArr[0]) graph.deleteVerticeAndAdjacentEdges(cell.verticeArr[0])
+                else {
+                    console.log("changeTypeAndLevelOfSelectedCell No vertice id in cell")
+                }
+            }
             cell.delType(newType);
         }
 
@@ -163,7 +172,7 @@ export class Interface {
         if(addOrDel === 0) {
             if(newType > 8) {
                 let tmpName = "added " + type + graph.idForNextVertice[0];
-                console.log("1 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
+                //console.log("1 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
                 let vrtce = graph.createVertice({
                     x: offsetX,
                     y: offsetY,
@@ -173,7 +182,7 @@ export class Interface {
                     level: level - 1,
                     richness: 10
                 });
-                console.log("2 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
+                //console.log("2 options_window grph.idForNextVertice[0] = ", graph.idForNextVertice[0]);
                 graph.verticesMap.set(vrtce.id, vrtce);
                 drawingLogic.mapLogic.addVerticeToCell(
                     Math.floor(offsetX / drawingLogic.mapLogic.blockSize),
@@ -183,7 +192,16 @@ export class Interface {
                 cell.addTypeAndLevel(newType, level - 1);
             }
         } else {
-            //TODO: add deletion for vertices. Delete vertice without deleting edges. That could be implemented later
+            //TODO: fix edges and bfs. after vertice deltiton it still finds deleted vertices somehow
+            /*console.log("changeTypeAndLevelOfSelectedCells newType = ", newType);
+            console.log(" cell.verticeArr[0] = ", cell.verticeArr[0]);*/
+            if(newType > 8) {
+
+                if(cell.verticeArr[0]) graph.deleteVerticeAndAdjacentEdges(cell.verticeArr[0])
+                else {
+                    console.log("changeTypeAndLevelOfSelectedCells No vertce id in cell")
+                }
+            }
             cell.delType(newType);
         }
 

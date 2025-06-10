@@ -53,6 +53,7 @@ export class Graph {
         //     this.adjacentMap);
 
         this.createVerticesFromObjects(this.verticeObjectsList, this.verticesMap, this.idForNextVertice);
+        this.verticeObjectsList = [];
     }
 
     checkVerticesListAndCreateVertices(verticesList, verticesMap, verticesNames, name) {
@@ -109,6 +110,7 @@ export class Graph {
         //console.log("vertices", vertices);
         let vrtc1 = this.verticesMap.get(vertices[0]);
         let vrtc2 = this.verticesMap.get(vertices[1]);
+        //console.log("this.verticesMap", this.verticesMap);
         let richness = Math.min(vrtc1.richness, vrtc2.richness);
         let id = this.idForNextEdge++;
         return new Edge({
@@ -130,12 +132,20 @@ export class Graph {
 
     fillMapWithAdjacentVertices(adjacentMap, verticeId, addedAdjacentList) {
         if (adjacentMap.has(verticeId)) {
-            let tempListAdj = adjacentMap.get(verticeId).forEach(function (item) {
-                addedAdjacentList.push(item);
-            })
-            adjacentMap.set(verticeId, addedAdjacentList);
+            let tempListAdj = adjacentMap.get(verticeId);
+            addedAdjacentList.splice(0, 0, ...tempListAdj);
         }
         adjacentMap.set(verticeId, addedAdjacentList);
+        //add to addedAdjacentList verticeId as adjacent if it isn`t there yet
+        /*addedAdjacentList.forEach(item => {
+            let tempArr = adjacentMap.get(item);
+            if(tempArr && tempArr.indexOf(verticeId) !== -1) {
+                tempArr.push(verticeId);
+                adjacentMap.set(item, tempArr);
+            } else if (!tempArr) {
+                adjacentMap.set(item, [verticeId]);
+            }
+        })*/
         return adjacentMap;
     }
 
@@ -218,16 +228,7 @@ export class Graph {
             if (length === -1) {
                 return -1;
             }
-            //console.log("resultsOfEdges", resultsOfEdges);
 
-            /*if(isEitherWay) {
-                let __ret1 = this.forEachEdgeInBfsRouteCreateOrUpdateEdge(edgesToBeAddedAndRoute, resultsOfEdges, i, edgesMap, level, isCheckNeeded, verticesMap, false, protectionAmount, type, isForVisualisation, adjacentMap, isEitherWay);
-                length = __ret1.length;
-                route = __ret1.route;
-                if (length === -1) {
-                    return -1;
-                }
-            }*/
 
             // If route given from bfs and route goes through at least one vertice
             // than instead of one payment there will be accumulation of all
@@ -247,6 +248,7 @@ export class Graph {
             //console.log("edge", edge);
             edge.edgesMap = this.edgesMap;
             edge.edgesToBeAddedAndRoute = edgesToBeAddedAndRoute;
+            console.log("createEdgeFromTwoPointsAndAddPointsToAdjacentLists edge", edge);
             this.createBfsEdge(edge);
         }
 
@@ -270,7 +272,6 @@ export class Graph {
         if(edgesToBeAddedAndRoute.routes.length > 1 && !this.edgesMap.has(`from ${vertice1Id} to ${vertice2Id}`) && !this.edgesMap.get(`from ${vertice2Id} to ${vertice1Id}`)) {
 
             edgesMap.set(`from ${vertice1Id} to ${vertice2Id}`, this.createEdge({vertices:[vertice1Id, vertice2Id], length: length * 1000, isForVisualisation: false, route: [], name: "", isEitherWay: isEitherWay}));
-            //if(isEitherWay) edgesMap.set(`from ${vertice2Id} to ${vertice1Id}`, this.createEdge({vertices:[vertice2Id, vertice1Id], length: length * 500, isForVisualisation: false, route: [], name: ""}));
 
         }
 
@@ -339,7 +340,7 @@ export class Graph {
                       edgesToBeAddedAndRoute,
                       isEitherWay
                   }) {
-
+        console.log("createBfsEdge vert ids: ", vertice1IdNew, vertice2IdNew);
         edgesMap.set(`from ${vertice1IdNew} to ${vertice2IdNew}`,
             this.createEdge({
                     vertices: [vertice1IdNew, vertice2IdNew],
@@ -596,6 +597,7 @@ export class Graph {
         for (let vertice of this.adjacentMap.keys()) {
             let arr = this.adjacentMap.get(vertice);
             for (let i = 0; i < arr.length; i++) {
+                console.log(`setReachIncomeForAllVertices from ${vertice} to ${arr[i]}`);
                 let edge = this.edgesMap.get(`from ${vertice} to ${arr[i]}`);
                 if (!edge.isForVisualisation) continue;
                 let roadRichness = edge.richness;
@@ -652,6 +654,49 @@ export class Graph {
     verticeAddLengthToAnotherVertice(vertice1Id, vertice2Id, length) {
         let vert = this.verticesMap.get(vertice1Id);
         vert.adjacentVerticesAndRoadLengthToThem.set(vertice2Id, length);
+    }
+
+    deleteVerticeAndAdjacentEdges(verticeId) {
+        //delete edges
+        for(let item of this.edgesMap.entries()) {
+            if(verticeId === item[1].vertices[0] || verticeId === item[1].vertices[1]) {
+                let key = item[0];
+                this.edgesMap.delete(key);
+            }
+        }
+        //delete hashed edges
+        this.mapLogic.deleteFromHashDeletedEdge(verticeId)
+        //delete edges links in vertices
+        //delete from adjacent
+
+        let adjArr = this.adjacentMap.get(verticeId);
+        if(Array.isArray(adjArr)) {
+            adjArr.forEach((adj) => {
+                let tempArr = this.adjacentMap.delete(adj);
+                if(Array.isArray(tempArr)) {
+                    tempArr.splice(tempArr.indexOf(adj), 1);
+                    this.adjacentMap.set(adj, tempArr);
+                }
+            })
+        }
+        //TODO: delete this after reworking edges construction
+        /*for(let adj of this.adjacentMap.entries()) {
+            let vertIndex = adj[1].indexOf(verticeId);
+            if(vertIndex !== -1) {
+                let newArr = adj[1].splice(vertIndex, 1);
+                this.adjacentMap.set(adj[0], newArr);
+            }
+        }*/
+
+        this.adjacentMap.delete(verticeId);
+        //delete vertice
+        this.verticesMap.delete(verticeId);
+        for(let i = 0; i < this.verticeObjectsList.length; i++) {
+            if(verticeId === this.verticeObjectsList[i].id) {
+                this.verticeObjectsList[i] = {};
+                break;
+            }
+        }
     }
 
 

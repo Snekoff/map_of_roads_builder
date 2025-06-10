@@ -127,10 +127,8 @@ export class DrawingLogic {
         let arrOfPairs = this.countDistancesBetweenVerticesAndReturnReachableForEach(graph);
         let outerThis = this;
         arrOfPairs.forEach(function (item) {
-            // TODO: add cost calculations
             // TODO: add defence calculations
-            // TODO: add level calculations
-            // TODO: add type
+
             //if(!graph.edgesMap.has(`from ${item[0]} to ${item[1]}`) && !graph.edgesMap.has(`from ${item[1]} to ${item[0]}`)) {
             outerThis.createEdgeAndCalculateParameters(graph, item, outerThis.mapLogic);
             //}
@@ -159,8 +157,9 @@ export class DrawingLogic {
 
     countDistancesBetweenVerticesAndReturnReachableForEach(graph) {
         let arrOfPairs = [];
-        console.log("graph", graph);
+        console.log("countDistancesBetweenVerticesAndReturnReachableForEach graph", graph);
         let vertices = graph.getAllVertices(graph.verticesMap);
+        console.log("vertices", vertices);
         for (let i = 0; i < vertices.length; i++) {
             for (let j = i + 1; j < vertices.length; j++) {
                 let key = `from ${vertices[i].id} to ${vertices[j].id}`;
@@ -176,6 +175,7 @@ export class DrawingLogic {
                 }
             }
         }
+        console.log("arrOfPairs", arrOfPairs);
         return arrOfPairs;
     }
 

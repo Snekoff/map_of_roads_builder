@@ -537,6 +537,28 @@ export class MapLogic {
         return arr_of_types;
     }
 
+    deleteFromHashDeletedEdge(verticeId) {
+        console.log("deleteFromHashDeletedEdge id:", verticeId);
+        for(let hash of this.hashBfs.entries()) {
+            console.log("hash[1].result.edgesToBeAddedAndRoute.edges:", hash[1].result.edgesToBeAddedAndRoute.edges);
+            let edgeMatch = false;
+            let edgeMatchIndex = -1;
+            for(let i = 0; i < hash[1].result.edgesToBeAddedAndRoute.edges.length; i++){
+                if(hash[1].result.edgesToBeAddedAndRoute.edges[i][0] === verticeId ||
+                    hash[1].result.edgesToBeAddedAndRoute.edges[i][1] === verticeId) {
+                    edgeMatch = true;
+                    edgeMatchIndex = i;
+                }
+            }
+            if(edgeMatch && hash[1].result.edgesToBeAddedAndRoute.edges.length === 1) {
+                this.hashBfs.delete(hash[0]);
+            } else if (edgeMatch) {
+                hash[1].result.edgesToBeAddedAndRoute.edges.splice(edgeMatchIndex, 1);
+            }
+
+        }
+    }
+
     save() {
         let save_obj = {};
         save_obj.objType = "Map Logic";

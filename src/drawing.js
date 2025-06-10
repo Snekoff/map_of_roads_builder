@@ -62,7 +62,7 @@ export class Drawing {
             ctx.lineTo(arr[i][0] * this.blockSize + xAdd + this.blockSize / 2, arr[i][1] * this.blockSize + yAdd + this.blockSize / 2);
         }
 
-        ctx.lineWidth = width + 1;
+        ctx.lineWidth = Math.min(width + 1, 5);
         ctx.strokeStyle = "black";
         //if(!isForVisualisation) ctx.strokeStyle = "orange";
 

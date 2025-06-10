@@ -274,7 +274,11 @@
     })
 
     document.getElementById("next_step").addEventListener('click', () => {
-        graph = Interface.next_step(graph, drawingLogic);
+        if(!graph) {
+            console.log("Not started");
+        } else  {
+            graph = Interface.next_step(graph, drawingLogic);
+        }
     })
 
     document.getElementById("save").addEventListener('click', () => {
